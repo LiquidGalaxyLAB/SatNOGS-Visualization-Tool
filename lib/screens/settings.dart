@@ -97,7 +97,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Input(
                         controller: _usernameController,
                         label: 'Username',
-                        hint: 'lg',
+                        hint: 'username',
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 4),
                           child: Icon(Icons.person_rounded, color: Colors.grey),
@@ -108,7 +108,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Input(
                         controller: _pwController,
                         label: 'Password',
-                        hint: '••••••••',
+                        hint: 'p@ssw0rd',
                         obscure: true,
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 4),
