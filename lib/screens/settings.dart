@@ -16,14 +16,16 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _connected = false;
   bool _loading = false;
 
-  String _ip = '';
-  String _port = '';
-
   final _ipController = TextEditingController();
   final _portController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _pwController = TextEditingController();
 
   @override
   void initState() {
+    _usernameController.text = 'lg';
+    _portController.text = '22';
+
     super.initState();
     _initNetworkState();
   }
@@ -37,12 +39,11 @@ class _SettingsPageState extends State<SettingsPage> {
       }
 
       setState(() {
-        _ip = ips.first.addresses.first.address;
-        _ipController.text = _ip;
+        _ipController.text = ips.first.addresses.first.address;
       });
     } on Exception {
       setState(() {
-        _ip = '';
+        _ipController.text = '';
       });
     }
   }
@@ -72,44 +73,73 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                  child: Column(
+                  child: SingleChildScrollView(
+                      child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  const Text('Establish connection to the system',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20)),
                   Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Text(
-                          _connected
-                              ? 'Connected'
-                              : 'Establish connection to the system',
+                      child: Text(_connected ? 'Connected' : 'Disconnected',
                           style: TextStyle(
                               color: _connected
                                   ? ThemeColors.success
-                                  : Colors.white,
+                                  : ThemeColors.alert,
                               fontWeight: FontWeight.w500,
                               fontSize: 20))),
                   Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Input(
-                          controller: _ipController,
-                          label: 'IP',
-                          hint: '192.168.10.21',
-                          onChange: (value) {
-                            setState(() {
-                              _ip = value;
-                            });
-                          })),
+                        controller: _usernameController,
+                        label: 'Username',
+                        hint: 'lg',
+                        prefixIcon: const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(Icons.person_rounded, color: Colors.grey),
+                        ),
+                      )),
                   Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Input(
-                          controller: _portController,
-                          label: 'Port',
-                          hint: '3000',
-                          onChange: (value) {
-                            setState(() {
-                              _port = value;
-                            });
-                          })),
+                        controller: _pwController,
+                        label: 'Password',
+                        hint: '••••••••',
+                        obscure: true,
+                        prefixIcon: const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(Icons.key_rounded, color: Colors.grey),
+                        ),
+                      )),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Input(
+                        controller: _ipController,
+                        label: 'IP',
+                        hint: '192.168.10.21',
+                        type: TextInputType.number,
+                        prefixIcon: const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(Icons.router_rounded, color: Colors.grey),
+                        ),
+                      )),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Input(
+                        controller: _portController,
+                        label: 'Port',
+                        hint: '3000',
+                        type: TextInputType.number,
+                        prefixIcon: const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(Icons.account_tree_rounded,
+                              color: Colors.grey),
+                        ),
+                      )),
                   Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Button(
@@ -134,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             });
                           })),
                 ],
-              ))
+              )))
             ],
           )),
     );
