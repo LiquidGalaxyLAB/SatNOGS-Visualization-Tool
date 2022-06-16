@@ -8,18 +8,27 @@ class Input extends StatefulWidget {
       required this.controller,
       this.formatters,
       this.hint,
+      this.type,
+      this.prefixIcon,
+      this.suffix,
+      this.obscure = false,
       this.label = 'Enter text',
       this.width = double.maxFinite,
       this.onChange})
       : super(key: key);
 
   final TextEditingController controller;
-  final List<TextInputFormatter>? formatters;
 
   final String label;
   final double width;
+  final bool obscure;
+
+  final Widget? prefixIcon;
+  final Widget? suffix;
   final String? hint;
+  final TextInputType? type;
   final Function(String)? onChange;
+  final List<TextInputFormatter>? formatters;
 
   @override
   State<Input> createState() => _InputState();
@@ -28,8 +37,12 @@ class Input extends StatefulWidget {
 class _InputState extends State<Input> {
   final maxWidth = 400.0;
 
+  bool _obscure = false;
+
   @override
   void initState() {
+    _obscure = widget.obscure;
+
     super.initState();
 
     if (widget.onChange != null) {
@@ -53,7 +66,28 @@ class _InputState extends State<Input> {
         inputFormatters: widget.formatters,
         style: const TextStyle(color: Colors.white),
         cursorColor: ThemeColors.primaryColor,
+        keyboardType: widget.type,
+        obscureText: _obscure,
         decoration: InputDecoration(
+            prefixIcon: widget.prefixIcon,
+            suffixIcon: !widget.obscure
+                ? widget.suffix
+                : Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: IconButton(
+                      icon: Icon(
+                        !_obscure
+                            ? Icons.lock_open_rounded
+                            : Icons.lock_outline_rounded,
+                        color: ThemeColors.primaryColor,
+                      ),
+                      splashRadius: 24,
+                      onPressed: () {
+                        setState(() {
+                          _obscure = !_obscure;
+                        });
+                      },
+                    )),
             hintText: widget.hint,
             hintStyle: const TextStyle(color: Colors.grey),
             contentPadding:
