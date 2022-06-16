@@ -88,7 +88,7 @@ class _InputState extends State<Input> {
                         });
                       },
                     )),
-            hintText: widget.hint,
+            hintText: _obscure ? '••••••••' : widget.hint,
             hintStyle: const TextStyle(color: Colors.grey),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
