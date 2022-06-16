@@ -5,6 +5,9 @@ class ThemeColors {
   static Color backgroundColor = const Color(0xFF2D2D2D);
 
   static Color primaryColor = const Color(0xFF75DEFF);
+  static Color success = const Color(0xFF4CFA72);
+  static Color warning = const Color(0xFFFFC061);
+  static Color alert = const Color(0xFFFF6161);
 
   static Map<int, Color> backgroundColorMaterial = {
     50: const Color(0xFF2D2D2D).withOpacity(.1),
