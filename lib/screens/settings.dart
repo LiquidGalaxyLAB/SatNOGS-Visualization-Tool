@@ -1,6 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:satnogs_visualization_tool/entities/settings_entity.dart';
+import 'package:satnogs_visualization_tool/entities/ssh_entity.dart';
+import 'package:satnogs_visualization_tool/services/settings_service.dart';
+import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/widgets/button.dart';
 import 'package:satnogs_visualization_tool/widgets/input.dart';
@@ -21,17 +26,35 @@ class _SettingsPageState extends State<SettingsPage> {
   final _usernameController = TextEditingController();
   final _pwController = TextEditingController();
 
+  SettingsService get _settingsService => GetIt.I<SettingsService>();
+  SSHService get _sshService => GetIt.I<SSHService>();
+
   @override
   void initState() {
-    _usernameController.text = 'lg';
-    _portController.text = '22';
-
     super.initState();
     _initNetworkState();
   }
 
+  /// Initializes and sets the network connection form.
   void _initNetworkState() async {
     try {
+      final settings = _settingsService.getSettings();
+
+      setState(() {
+        _usernameController.text = settings.username;
+        _portController.text = settings.port.toString();
+        _pwController.text = settings.password;
+      });
+
+      if (settings.ip.isNotEmpty) {
+        setState(() {
+          _ipController.text = settings.ip;
+        });
+
+        _checkConnection();
+        return;
+      }
+
       final ips = await NetworkInterface.list(type: InternetAddressType.IPv4);
 
       if (ips.isEmpty || ips.first.addresses.isEmpty) {
@@ -41,11 +64,69 @@ class _SettingsPageState extends State<SettingsPage> {
       setState(() {
         _ipController.text = ips.first.addresses.first.address;
       });
+
+      _checkConnection();
     } on Exception {
       setState(() {
         _ipController.text = '';
       });
     }
+  }
+
+  /// Checks and sets the connection status according to the form info.
+  Future<void> _checkConnection() async {
+    setState(() {
+      _loading = true;
+    });
+
+    _setSSH();
+
+    try {
+      final result = await _sshService.connect();
+
+      setState(() {
+        _connected = result == 'session_connected';
+      });
+
+      _sshService.disconnect();
+    } on Exception catch (_) {
+      setState(() {
+        _connected = false;
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  /// Sets the SSH client info based into the form.
+  void _setSSH() {
+    _sshService.setClient(SSHEntity(
+      host: _ipController.text,
+      passwordOrKey: _pwController.text,
+      port: int.parse(_portController.text),
+      username: _usernameController.text,
+    ));
+  }
+
+  /// Connects to the a machine according to the form info.
+  void _onConnect() async {
+    setState(() {
+      _loading = true;
+    });
+
+    await _settingsService.setSettings(SettingsEntity(
+        ip: _ipController.text,
+        password: _pwController.text,
+        port: int.parse(_portController.text),
+        username: _usernameController.text));
+
+    await _checkConnection();
+
+    setState(() {
+      _loading = false;
+    });
   }
 
   @override
@@ -97,7 +178,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Input(
                         controller: _usernameController,
                         label: 'Username',
-                        hint: 'lg',
+                        hint: 'username',
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 4),
                           child: Icon(Icons.person_rounded, color: Colors.grey),
@@ -108,7 +189,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Input(
                         controller: _pwController,
                         label: 'Password',
-                        hint: '••••••••',
+                        hint: 'p@ssw0rd',
                         obscure: true,
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 4),
@@ -149,20 +230,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           loading: _loading,
                           icon: Icon(Icons.connected_tv_rounded,
                               color: ThemeColors.backgroundColor),
-                          onPressed: () async {
-                            // TODO: Implement connection logic.
-
-                            setState(() {
-                              _loading = true;
-                            });
-
-                            await Future.delayed(const Duration(seconds: 2));
-
-                            setState(() {
-                              _connected = !_connected;
-                              _loading = false;
-                            });
-                          })),
+                          onPressed: _onConnect)),
                 ],
               )))
             ],
