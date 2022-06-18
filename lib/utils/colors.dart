@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Class that keeps all application colors.
 class ThemeColors {
   static int backgroundColorHex = 0xFF2D2D2D;
   static Color backgroundColor = const Color(0xFF2D2D2D);
