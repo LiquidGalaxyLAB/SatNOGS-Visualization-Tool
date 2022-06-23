@@ -16,6 +16,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('SatNOGS Visualization Tool'),
         shadowColor: Colors.transparent,
+        elevation: 0,
         actions: [
           Padding(
               padding: const EdgeInsets.only(right: 4),

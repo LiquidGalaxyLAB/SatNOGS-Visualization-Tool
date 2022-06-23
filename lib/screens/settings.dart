@@ -135,6 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text('Settings'),
         shadowColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             splashRadius: 24,
