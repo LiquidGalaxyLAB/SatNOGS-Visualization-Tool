@@ -6,7 +6,7 @@ class SatelliteEntity {
   String id;
 
   /// Property that defines the satellite `NORAD id`.
-  int noradId;
+  int? noradId;
 
   /// Property that defines the satellite `main name`.
   String name;
@@ -80,10 +80,30 @@ class SatelliteEntity {
         return SatelliteStatusEnum.DEAD;
       case 'future':
         return SatelliteStatusEnum.FUTURE;
-      case 're_entered':
+      case 're-entered':
         return SatelliteStatusEnum.RE_ENTERED;
       default:
         return SatelliteStatusEnum.ALIVE;
+    }
+  }
+
+  /// Gets the status label.
+  ///
+  /// Example
+  /// ```
+  /// final satellite = SatelliteEntity(status: SatelliteStatusEnum.ALIVE);
+  /// satellite.getStatusLabel(); => 'Alive'
+  /// ```
+  String getStatusLabel() {
+    switch (status) {
+      case SatelliteStatusEnum.ALIVE:
+        return 'Alive';
+      case SatelliteStatusEnum.DEAD:
+        return 'Dead';
+      case SatelliteStatusEnum.FUTURE:
+        return 'Future';
+      case SatelliteStatusEnum.RE_ENTERED:
+        return 'Re-entered';
     }
   }
 
@@ -96,9 +116,9 @@ class SatelliteEntity {
         altNames: map['names'],
         image: map['image'],
         status: SatelliteEntity.parseStatus(map['status']),
-        decayed: map['decayed'],
-        launched: map['launched'],
-        deployed: map['deployed'],
+        decayed: map['decayed'] ?? '',
+        launched: map['launched'] ?? '',
+        deployed: map['deployed'] ?? '',
         website: map['website'],
         satOperator: map['operator'],
         countries: map['countries'],
