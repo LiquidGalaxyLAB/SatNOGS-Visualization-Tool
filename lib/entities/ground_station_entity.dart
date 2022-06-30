@@ -40,6 +40,24 @@ class GroundStationEntity {
     }
   }
 
+  /// Gets the status label.
+  ///
+  /// Example
+  /// ```
+  /// final groundStation = GroundStationEntity(status: GroundStationStatusEnum.ONLINE);
+  /// groundStation.getStatusLabel(); => 'Online'
+  /// ```
+  String getStatusLabel() {
+    switch (status) {
+      case GroundStationStatusEnum.ONLINE:
+        return 'Online';
+      case GroundStationStatusEnum.TESTING:
+        return 'Testing';
+      case GroundStationStatusEnum.OFFLINE:
+        return 'Offline';
+    }
+  }
+
   /// Gets a [GroundStationEntity] from the given [map].
   factory GroundStationEntity.fromMap(Map map) {
     return GroundStationEntity(

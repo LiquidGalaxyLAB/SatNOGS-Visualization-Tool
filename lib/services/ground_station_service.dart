@@ -35,9 +35,9 @@ class GroundStationService {
     return GroundStationEntity(
         id: id,
         name: 'name',
-        lat: 1,
-        lng: 1,
-        status: GroundStationStatusEnum.ONLINE);
+        lat: 38.555972,
+        lng: -78.062523,
+        status: GroundStationStatusEnum.OFFLINE);
   }
 
   /// Gets multiple ground stations from the database.
