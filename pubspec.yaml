@@ -40,6 +40,7 @@ dependencies:
   http: ^0.13.4
   flutter_dotenv: ^5.0.2
   html: ^0.15.0
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
