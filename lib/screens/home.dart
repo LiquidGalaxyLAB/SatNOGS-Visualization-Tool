@@ -1,18 +1,16 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
+import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
 import 'package:satnogs_visualization_tool/screens/settings.dart';
 import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
 import 'package:satnogs_visualization_tool/services/satellite_service.dart';
+import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/views/data_list.dart';
 import 'package:satnogs_visualization_tool/widgets/data_amount.dart';
-import 'package:satnogs_visualization_tool/widgets/ground_station_card.dart';
 import 'package:satnogs_visualization_tool/widgets/input.dart';
-import 'package:satnogs_visualization_tool/widgets/satellite_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -23,104 +21,83 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   SatelliteService get _satelliteService => GetIt.I<SatelliteService>();
+  TransmitterService get _transmitterService => GetIt.I<TransmitterService>();
   GroundStationService get _groundStationService =>
       GetIt.I<GroundStationService>();
 
   final TextEditingController _satellitesController = TextEditingController();
 
   List<SatelliteEntity> _satellites = [];
+  List<TransmitterEntity> _transmitters = [];
   List<GroundStationEntity> _groundStations = [];
+
+  bool _loadingSatellites = false;
+  bool _loadingStations = false;
 
   @override
   void initState() {
     super.initState();
 
-    _loadSatellites();
-    _loadGroundStations();
+    _loadSatellites(false);
+    _loadGroundStations(false);
+    _loadTransmitters(false);
   }
 
-  Future<void> _loadSatellites() async {
-    // TODO: implement satellite loading
+  Future<void> _loadSatellites(bool synchronize) async {
+    setState(() {
+      _loadingSatellites = true;
+    });
 
-    final List<SatelliteEntity> list = [];
-
-    final sat1 = await _satelliteService.getOne('EFAY-8089-9221-6385-2409');
-    list.add(sat1);
-
-    final sat2 = await _satelliteService.getOne('SCHX-0895-2361-9925-0309');
-    list.add(sat2);
-
-    final sat3 = await _satelliteService.getOne('UESX-7919-5228-5020-3244');
-    list.add(sat3);
-
-    final sat4 = await _satelliteService.getOne('BDAD-5123-3691-7989-4312');
-    list.add(sat4);
-
-    final sat5 = await _satelliteService.getOne('AMQV-8272-4458-8097-5541');
-    list.add(sat5);
-
-    final sat6 = await _satelliteService.getOne('UQOW-0891-3949-6041-9698');
-    list.add(sat6);
-
-    final sat7 = await _satelliteService.getOne('GKGO-8867-1154-9953-5426');
-    list.add(sat7);
-
-    final sat8 = await _satelliteService.getOne('PEOD-7224-7918-2978-4352');
-    list.add(sat8);
-
-    final sat9 = await _satelliteService.getOne('LUNR-6930-6214-4841-5140');
-    list.add(sat9);
+    final List<SatelliteEntity> list =
+        await _satelliteService.getMany(synchronize: synchronize);
 
     setState(() {
       _satellites = list;
+      _loadingSatellites = false;
     });
   }
 
-  Future<void> _loadGroundStations() async {
-    // TODO: implement ground station loading
+  Future<void> _loadTransmitters(bool synchronize) async {
+    final List<TransmitterEntity> list =
+        await _transmitterService.getMany(synchronize: synchronize);
 
-    final List<GroundStationEntity> list = [];
+    setState(() {
+      _transmitters = list;
+    });
+  }
 
-    final gs1 = await _groundStationService.getOne(2);
-    list.add(gs1);
+  Future<void> _loadGroundStations(bool synchronize) async {
+    setState(() {
+      _loadingStations = true;
+    });
 
-    final gs2 = await _groundStationService.getOne(256);
-    list.add(gs2);
-
-    final gs3 = await _groundStationService.getOne(1594);
-    list.add(gs3);
-
-    final gs4 = await _groundStationService.getOne(1);
-    list.add(gs4);
-
-    final gs5 = await _groundStationService.getOne(6);
-    list.add(gs5);
-
-    final gs6 = await _groundStationService.getOne(37);
-    list.add(gs6);
-
-    final gs7 = await _groundStationService.getOne(1062);
-    list.add(gs7);
-
-    final gs8 = await _groundStationService.getOne(1775);
-    list.add(gs8);
-
-    final gs9 = await _groundStationService.getOne(1538);
-    list.add(gs9);
+    final List<GroundStationEntity> list =
+        await _groundStationService.getMany(synchronize: synchronize);
 
     setState(() {
       _groundStations = list;
+      _loadingStations = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('SatNOGS Visualization Tool'),
         shadowColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+              icon: Icon(Icons.cloud_sync_rounded, color: ThemeColors.warning),
+              splashRadius: 24,
+              onPressed: () {
+                _loadSatellites(true);
+                _loadGroundStations(true);
+                _loadTransmitters(true);
+              }),
           Padding(
               padding: const EdgeInsets.only(right: 4),
               child: IconButton(
@@ -140,11 +117,10 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.only(top: 20, bottom: 40),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: const [
-                // TODO: show real data amount
-                DataAmount(label: 'satellites', amount: 848),
-                DataAmount(label: 'transmitters', amount: 1551),
-                DataAmount(label: 'stations', amount: 957),
+              children: [
+                DataAmount(label: 'satellites', amount: _satellites.length),
+                DataAmount(label: 'transmitters', amount: _transmitters.length),
+                DataAmount(label: 'stations', amount: _groundStations.length),
               ],
             ),
           ),
@@ -165,15 +141,26 @@ class _HomePageState extends State<HomePage> {
                       child: _buildFilterRow(
                           _satellitesController, 'Search by name', () {}),
                     ),
-                    Expanded(
-                        child: DataList(
-                      items: _satellites
-                          .map((s) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: SatelliteCard(satellite: s),
-                              ))
-                          .toList(),
-                    ))
+                    _loadingSatellites
+                        ? SizedBox(
+                            width:
+                                screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(
+                                      color: ThemeColors.primaryColor)
+                                ]),
+                          )
+                        : Expanded(
+                            child: SizedBox(
+                            width:
+                                screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
+                            child: DataList(
+                              items: _satellites,
+                              render: 'satellite',
+                            ),
+                          ))
                   ],
                 ),
               ),
@@ -189,15 +176,24 @@ class _HomePageState extends State<HomePage> {
                       child: _buildFilterRow(
                           _satellitesController, 'Search by name', () {}),
                     ),
-                    Expanded(
-                        child: DataList(
-                      items: _groundStations
-                          .map((gs) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: GroundStationCard(groundStation: gs),
-                              ))
-                          .toList(),
-                    ))
+                    _loadingStations
+                        ? SizedBox(
+                            width:
+                                screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(
+                                      color: ThemeColors.primaryColor)
+                                ]),
+                          )
+                        : Expanded(
+                            child: SizedBox(
+                            width:
+                                screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
+                            child: DataList(
+                                items: _groundStations, render: 'station'),
+                          ))
                   ],
                 ),
               )
@@ -263,7 +259,7 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(60),
                     side: BorderSide(color: ThemeColors.primaryColor)))),
             child: Icon(Icons.filter_list_rounded,
-                color: ThemeColors.primaryColor),
+                color: ThemeColors.primaryColor, size: 30),
           ),
         )
       ],

@@ -6,6 +6,7 @@ import 'package:satnogs_visualization_tool/services/local_storage_service.dart';
 import 'package:satnogs_visualization_tool/services/satellite_service.dart';
 import 'package:satnogs_visualization_tool/services/settings_service.dart';
 import 'package:satnogs_visualization_tool/services/ssh_service.dart';
+import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/screens/home.dart';
 
@@ -16,6 +17,7 @@ void setupServices() {
   GetIt.I.registerLazySingleton(() => SSHService());
   GetIt.I.registerLazySingleton(() => SatelliteService());
   GetIt.I.registerLazySingleton(() => GroundStationService());
+  GetIt.I.registerLazySingleton(() => TransmitterService());
 }
 
 void main() async {

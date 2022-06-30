@@ -87,7 +87,7 @@ class TransmitterEntity {
   dynamic ituNotification;
 
   /// Property that defines whether the transmitter has a `violated frequency`.
-  bool frequencyViolation;
+  bool? frequencyViolation;
 
   TransmitterEntity({
     required this.id,
@@ -116,4 +116,116 @@ class TransmitterEntity {
     required this.ituNotification,
     required this.frequencyViolation,
   });
+
+  /// Gets the transmitter status from the given string.
+  static IARUCoordinationEnum parseIaru(String status) {
+    switch (status.toLowerCase()) {
+      case 'iaru coordinated':
+        return IARUCoordinationEnum.IARU_COORDINATED;
+      case 'iaru uncoordinated':
+        return IARUCoordinationEnum.IARU_UNCOORDINATED;
+      case 'iaru declined':
+        return IARUCoordinationEnum.IARU_DECLINED;
+      case 'n/a':
+        return IARUCoordinationEnum.NA;
+      default:
+        return IARUCoordinationEnum.NA;
+    }
+  }
+
+  /// Gets the transmitter status from the given string.
+  static TransmitterStatusEnum parseStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return TransmitterStatusEnum.ACTIVE;
+      case 'inactive':
+        return TransmitterStatusEnum.INACTIVE;
+      case 'invalid':
+        return TransmitterStatusEnum.INVALID;
+      default:
+        return TransmitterStatusEnum.ACTIVE;
+    }
+  }
+
+  /// Gets the transmitter type from the given string.
+  static TransmitterTypeEnum parseType(String type) {
+    switch (type.toLowerCase()) {
+      case 'transmitter':
+        return TransmitterTypeEnum.TRANSMITTER;
+      case 'transceiver':
+        return TransmitterTypeEnum.TRANSCEIVER;
+      case 'transponder':
+        return TransmitterTypeEnum.TRANSPONDER;
+      default:
+        return TransmitterTypeEnum.TRANSMITTER;
+    }
+  }
+
+  /// Gets the transmitter service from the given string.
+  static TransmitterServiceEnum parseService(String service) {
+    switch (service.toLowerCase()) {
+      case 'aeronautical':
+        return TransmitterServiceEnum.AERONAUTICAL;
+      case 'amateur':
+        return TransmitterServiceEnum.AMATEUR;
+      case 'broadcasting':
+        return TransmitterServiceEnum.BROADCASTING;
+      case 'earth exploration':
+        return TransmitterServiceEnum.EARTH_EXPLORATION;
+      case 'fixed':
+        return TransmitterServiceEnum.FIXED;
+      case 'inter satellite':
+        return TransmitterServiceEnum.INTER_SATELLITE;
+      case 'maritime':
+        return TransmitterServiceEnum.MARITIME;
+      case 'meteorological':
+        return TransmitterServiceEnum.METEOROLOGICAL;
+      case 'mobile':
+        return TransmitterServiceEnum.MOBILE;
+      case 'radiolocation':
+        return TransmitterServiceEnum.RADIOLOCATION;
+      case 'radionavigational':
+        return TransmitterServiceEnum.RADIONAVIGATIONAL;
+      case 'space operation':
+        return TransmitterServiceEnum.SPACE_OPERATION;
+      case 'space research':
+        return TransmitterServiceEnum.SPACE_RESEARCH;
+      case 'standard frequency and time signal':
+        return TransmitterServiceEnum.STANDARD_FREQUENCY_AND_TIME_SIGNAL;
+      case 'unknown':
+        return TransmitterServiceEnum.UNKNOWN;
+      default:
+        return TransmitterServiceEnum.UNKNOWN;
+    }
+  }
+
+  /// Gets a [TransmitterEntity] from the given [map].
+  factory TransmitterEntity.fromMap(Map map) {
+    return TransmitterEntity(
+        id: map['uuid'],
+        description: map['description'],
+        alive: map['alive'],
+        type: TransmitterEntity.parseType(map['type']),
+        uplinkLow: map['uplink_low'],
+        uplinkHigh: map['uplink_high'],
+        uplinkDrift: map['uplink_drift'],
+        downlinkLow: map['downlink_low'],
+        downlinkHigh: map['downlink_high'],
+        downlinkDrift: map['downlink_drift'],
+        mode: map['mode'],
+        modeId: map['mode_id'],
+        uplinkMode: map['uplink_mode'],
+        invert: map['invert'],
+        baud: map['baud'],
+        satelliteId: map['sat_id'],
+        noradId: map['norad_cat_id'],
+        status: TransmitterEntity.parseStatus(map['status']),
+        updated: map['updated'],
+        citation: map['citation'],
+        service: TransmitterEntity.parseService(map['service']),
+        iaruCoordination: TransmitterEntity.parseIaru(map['iaru_coordination']),
+        iaruCoordinationUrl: map['iaru_coordination_url'],
+        ituNotification: map['itu_notification'],
+        frequencyViolation: map['frequency_violation']);
+  }
 }
