@@ -1,4 +1,4 @@
-/// Class that represents the SSH entity and its properties.
+/// Entity that represents the `ssh`, with all of its properties and methods.
 class SSHEntity {
   /// Property that defines the SSH host address.
   ///

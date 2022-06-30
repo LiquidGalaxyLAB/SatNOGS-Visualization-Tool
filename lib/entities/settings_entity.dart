@@ -1,5 +1,4 @@
-/// Class that represents the settings entity, containing its
-/// properties and methods.
+/// Entity that represents the `settings`, with all of its properties and methods.
 class SettingsEntity {
   /// Property that defines the Liquid Galaxy master username.
   /// Defaults to 'lg'.
