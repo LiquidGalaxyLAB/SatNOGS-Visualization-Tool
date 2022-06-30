@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
+import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
 import 'package:satnogs_visualization_tool/services/local_storage_service.dart';
+import 'package:satnogs_visualization_tool/services/satellite_service.dart';
 import 'package:satnogs_visualization_tool/services/settings_service.dart';
 import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
@@ -11,13 +14,16 @@ void setupServices() {
   GetIt.I.registerLazySingleton(() => LocalStorageService());
   GetIt.I.registerLazySingleton(() => SettingsService());
   GetIt.I.registerLazySingleton(() => SSHService());
+  GetIt.I.registerLazySingleton(() => SatelliteService());
+  GetIt.I.registerLazySingleton(() => GroundStationService());
 }
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupServices();
 
-  GetIt.I<LocalStorageService>().loadStorage();
+  await GetIt.I<LocalStorageService>().loadStorage();
+  await dotenv.load(fileName: ".env");
 
   runApp(const MyApp());
 }
