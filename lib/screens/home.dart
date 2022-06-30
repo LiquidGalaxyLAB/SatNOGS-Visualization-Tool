@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/screens/settings.dart';
+import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
+import 'package:satnogs_visualization_tool/services/satellite_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 
 class HomePage extends StatefulWidget {
@@ -10,6 +15,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  SatelliteService get _satelliteService => GetIt.I<SatelliteService>();
+  GroundStationService get _groundStationService =>
+      GetIt.I<GroundStationService>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _loadSatellites();
+    _loadGroundStations();
+  }
+
+  Future<void> _loadSatellites() async {
+    // TODO: implement satellite loading
+  }
+
+  Future<void> _loadGroundStations() async {
+    // TODO: implement ground station loading
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
