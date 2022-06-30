@@ -89,10 +89,13 @@ class _SettingsPageState extends State<SettingsPage> {
       });
 
       _sshService.disconnect();
-    } on Exception catch (_) {
+    } on Exception catch (e) {
+      print(e);
       setState(() {
         _connected = false;
       });
+    } catch (e) {
+      print(e);
     } finally {
       setState(() {
         _loading = false;
