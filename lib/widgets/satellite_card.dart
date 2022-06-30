@@ -35,6 +35,7 @@ class SatelliteCard extends StatelessWidget {
                 children: [
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Flexible(
                             child: Text(
