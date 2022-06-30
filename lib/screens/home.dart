@@ -10,6 +10,7 @@ import 'package:satnogs_visualization_tool/services/satellite_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/views/data_list.dart';
 import 'package:satnogs_visualization_tool/widgets/data_amount.dart';
+import 'package:satnogs_visualization_tool/widgets/ground_station_card.dart';
 import 'package:satnogs_visualization_tool/widgets/input.dart';
 import 'package:satnogs_visualization_tool/widgets/satellite_card.dart';
 
@@ -77,6 +78,39 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadGroundStations() async {
     // TODO: implement ground station loading
+
+    final List<GroundStationEntity> list = [];
+
+    final gs1 = await _groundStationService.getOne(2);
+    list.add(gs1);
+
+    final gs2 = await _groundStationService.getOne(256);
+    list.add(gs2);
+
+    final gs3 = await _groundStationService.getOne(1594);
+    list.add(gs3);
+
+    final gs4 = await _groundStationService.getOne(1);
+    list.add(gs4);
+
+    final gs5 = await _groundStationService.getOne(6);
+    list.add(gs5);
+
+    final gs6 = await _groundStationService.getOne(37);
+    list.add(gs6);
+
+    final gs7 = await _groundStationService.getOne(1062);
+    list.add(gs7);
+
+    final gs8 = await _groundStationService.getOne(1775);
+    list.add(gs8);
+
+    final gs9 = await _groundStationService.getOne(1538);
+    list.add(gs9);
+
+    setState(() {
+      _groundStations = list;
+    });
   }
 
   @override
@@ -158,9 +192,9 @@ class _HomePageState extends State<HomePage> {
                     Expanded(
                         child: DataList(
                       items: _groundStations
-                          .map((s) => Padding(
+                          .map((gs) => Padding(
                                 padding: const EdgeInsets.only(bottom: 16),
-                                child: Container(),
+                                child: GroundStationCard(groundStation: gs),
                               ))
                           .toList(),
                     ))
