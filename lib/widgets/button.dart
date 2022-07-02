@@ -4,11 +4,13 @@ import 'package:satnogs_visualization_tool/utils/colors.dart';
 class Button extends StatefulWidget {
   const Button(
       {Key? key,
+      this.height,
+      this.icon,
+      this.color,
+      this.labelColor,
       this.label = 'Label',
       this.width = double.maxFinite,
       this.loading = false,
-      this.height,
-      this.icon,
       required this.onPressed})
       : super(key: key);
 
@@ -17,6 +19,8 @@ class Button extends StatefulWidget {
   final Function onPressed;
   final bool loading;
 
+  final Color? color;
+  final Color? labelColor;
   final double? height;
   final Icon? icon;
 
@@ -55,10 +59,10 @@ class _ButtonState extends State<Button> {
           style: ButtonStyle(
               shape: MaterialStateProperty.all(RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(widget.height ?? 50))),
-              foregroundColor:
-                  MaterialStateProperty.all(ThemeColors.backgroundColor),
-              backgroundColor:
-                  MaterialStateProperty.all(ThemeColors.primaryColor)),
+              foregroundColor: MaterialStateProperty.all(
+                  widget.labelColor ?? ThemeColors.backgroundColor),
+              backgroundColor: MaterialStateProperty.all(
+                  widget.color ?? ThemeColors.primaryColor)),
         ));
   }
 }
