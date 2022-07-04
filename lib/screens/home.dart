@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
+import 'package:satnogs_visualization_tool/enums/ground_station_status_enum.dart';
 import 'package:satnogs_visualization_tool/enums/satellite_status_enum.dart';
 import 'package:satnogs_visualization_tool/screens/settings.dart';
 import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
@@ -12,6 +13,7 @@ import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/views/data_list.dart';
 import 'package:satnogs_visualization_tool/widgets/data_amount.dart';
 import 'package:satnogs_visualization_tool/widgets/input.dart';
+import 'package:satnogs_visualization_tool/widgets/modals/ground_station_filter_modal.dart';
 import 'package:satnogs_visualization_tool/widgets/modals/satellite_filter_modal.dart';
 
 class HomePage extends StatefulWidget {
@@ -27,7 +29,10 @@ class _HomePageState extends State<HomePage> {
   GroundStationService get _groundStationService =>
       GetIt.I<GroundStationService>();
 
-  final TextEditingController _satellitesController = TextEditingController();
+  final TextEditingController _satellitesSearchController =
+      TextEditingController();
+  final TextEditingController _groundStationsSearchController =
+      TextEditingController();
 
   List<SatelliteEntity> _satellites = [];
   List<TransmitterEntity> _transmitters = [];
@@ -35,6 +40,9 @@ class _HomePageState extends State<HomePage> {
 
   Map<String, dynamic>? _satelliteFilters;
   List<SatelliteEntity> _filteredSatellites = [];
+
+  Map<String, dynamic>? _groundStationFilters;
+  List<GroundStationEntity> _filteredGroundStations = [];
 
   bool _loadingSatellites = false;
   bool _loadingTransmitters = false;
@@ -97,6 +105,7 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       _groundStations = list;
+      _filteredGroundStations = [...list];
       _loadingStations = false;
     });
   }
@@ -162,7 +171,65 @@ class _HomePageState extends State<HomePage> {
       sats.removeWhere((element) => element.deployed.isEmpty);
     }
 
-    _searchSatellites(_satellitesController.text, sats);
+    _searchSatellites(_satellitesSearchController.text, sats);
+  }
+
+  /// Searches through the ground stations using the given [query].
+  ///
+  /// It uses the ground stations [name] and [id].
+  void _searchGroundStations(String query, List<GroundStationEntity> stations) {
+    final lQuery = query.toLowerCase();
+
+    setState(() {
+      _filteredGroundStations = stations
+          .where((element) =>
+              element.name.toLowerCase().contains(lQuery) ||
+              element.id.toString().contains(lQuery))
+          .toList();
+    });
+  }
+
+  /// Filters the ground stations based on the given [filters].
+  void _filterGroundStations(Map<String, dynamic> filters) {
+    setState(() {
+      _groundStationFilters = filters;
+    });
+
+    List<GroundStationEntity> stations = [..._groundStations];
+
+    final status = filters['status'] as GroundStationStatusEnum?;
+    final lat = filters['latitude'] as String?;
+    final lng = filters['longitude'] as String?;
+
+    final regex = RegExp('\\.\\\\?(.*)');
+
+    if (status != null) {
+      stations.removeWhere((element) => element.status != status);
+    }
+
+    if (lat != null && lat.isNotEmpty && !lat.contains(RegExp('[^0-9-\\.,]'))) {
+      stations = stations
+          .where((element) =>
+              double.parse(element.lat
+                      .toString()
+                      .replaceAll(regex, '')
+                      .replaceAll(regex, ''))
+                  .round() ==
+              double.parse(lat.replaceAll(',', '.')).round())
+          .toList();
+    }
+
+    if (lng != null && lng.isNotEmpty && !lng.contains(RegExp('[^0-9-\\.,]'))) {
+      stations = stations
+          .where((element) =>
+              double.parse(element.lng.toString().replaceAll(regex, ''))
+                  .round() ==
+              double.parse(lng.replaceAll(',', '.').replaceAll(regex, ''))
+                  .round())
+          .toList();
+    }
+
+    _searchGroundStations(_groundStationsSearchController.text, stations);
   }
 
   @override
@@ -231,8 +298,9 @@ class _HomePageState extends State<HomePage> {
                         'Satellites', Icons.satellite_alt_rounded),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: _buildFilterRow(_satellitesController, 'Search',
-                          onSubmit: (value) {
+                      child:
+                          _buildFilterRow(_satellitesSearchController, 'Search',
+                              onSubmit: (value) {
                         _filterSatellites(_satelliteFilters ?? {});
                       }, onFilterPressed: () {
                         _showModal(SatelliteFilterModal(
@@ -241,7 +309,8 @@ class _HomePageState extends State<HomePage> {
                               Navigator.pop(context);
 
                               _searchSatellites(
-                                  _satellitesController.text, [..._satellites]);
+                                  _satellitesSearchController.text,
+                                  [..._satellites]);
 
                               setState(() {
                                 _satelliteFilters = null;
@@ -279,8 +348,30 @@ class _HomePageState extends State<HomePage> {
                         Icons.settings_input_antenna_rounded),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: _buildFilterRow(_satellitesController, 'Search',
-                          onFilterPressed: () {}, onSubmit: (value) {}),
+                      child: _buildFilterRow(
+                          _groundStationsSearchController, 'Search',
+                          onSubmit: (value) {
+                        _filterGroundStations(_groundStationFilters ?? {});
+                      }, onFilterPressed: () {
+                        _showModal(GroundStationFilterModal(
+                            initialValue: _groundStationFilters,
+                            onClear: () {
+                              Navigator.pop(context);
+
+                              _searchGroundStations(
+                                  _groundStationsSearchController.text,
+                                  [..._groundStations]);
+
+                              setState(() {
+                                _groundStationFilters = null;
+                              });
+                            },
+                            onFilter: (Map<String, dynamic> filters) {
+                              Navigator.pop(context);
+
+                              _filterGroundStations(filters);
+                            }));
+                      }),
                     ),
                     _loadingStations
                         ? _buildSpinner()
@@ -289,7 +380,8 @@ class _HomePageState extends State<HomePage> {
                             width:
                                 screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
                             child: DataList(
-                                items: _groundStations, render: 'station'),
+                                items: _filteredGroundStations,
+                                render: 'station'),
                           ))
                   ],
                 ),
