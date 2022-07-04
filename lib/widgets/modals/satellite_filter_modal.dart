@@ -124,7 +124,9 @@ class _SatelliteFilterModalState extends State<SatelliteFilterModal> {
                               return DropdownMenuItem(
                                   value: s,
                                   child: Text(
-                                    s != null ? s.name : 'ALL',
+                                    s != null
+                                        ? s.name.replaceAll('_', '-')
+                                        : 'ALL',
                                     style: TextStyle(
                                         color: _getStatusColor(s),
                                         fontWeight: FontWeight.bold),
