@@ -21,6 +21,8 @@ import 'package:satnogs_visualization_tool/widgets/input.dart';
 import 'package:satnogs_visualization_tool/widgets/modals/ground_station_filter_modal.dart';
 import 'package:satnogs_visualization_tool/widgets/modals/satellite_filter_modal.dart';
 
+import 'package:satnogs_visualization_tool/widgets/svt_icons.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -404,8 +406,7 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildListTitleRow('Ground stations',
-                        Icons.settings_input_antenna_rounded),
+                    _buildListTitleRow('Ground stations', SVT.satellite_dish),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: _buildFilterRow(
