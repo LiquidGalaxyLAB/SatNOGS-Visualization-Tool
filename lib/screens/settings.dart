@@ -93,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       }
 
-      final timer = Timer(const Duration(seconds: 2), () {
+      final timer = Timer(const Duration(seconds: 10), () {
         _showConnectionFailedSnackbar();
 
         setState(() {
@@ -264,6 +264,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  /// Shows a snackbar to inform that the SSH connection failed.
   void _showConnectionFailedSnackbar() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(
