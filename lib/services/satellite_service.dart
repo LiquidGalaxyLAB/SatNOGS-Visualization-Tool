@@ -30,10 +30,11 @@ class SatelliteService {
   Future<List<SatelliteEntity>> getMany(
       {Map<String, String>? params,
       List<String>? join,
-      bool synchronize = false}) async {
+      bool synchronize = false,
+      bool offline = false}) async {
     final hasLocal = _localStorageService.hasItem(StorageKeys.satellites);
 
-    if (!synchronize && hasLocal) {
+    if ((!synchronize || offline) && hasLocal) {
       List<dynamic> localSatellites =
           json.decode(_localStorageService.getItem(StorageKeys.satellites));
 
