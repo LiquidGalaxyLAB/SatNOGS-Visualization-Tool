@@ -107,7 +107,7 @@ class _SettingsPageState extends State<SettingsPage> {
       timer.cancel();
 
       setState(() {
-        _connected = !_canceled && result == 'session_connected';
+        _connected = _canceled ? _connected : result == 'session_connected';
       });
 
       _sshService.disconnect();
