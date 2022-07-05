@@ -30,10 +30,11 @@ class TransmitterService {
   Future<List<TransmitterEntity>> getMany(
       {Map<String, String>? params,
       List<String>? join,
-      bool synchronize = false}) async {
+      bool synchronize = false,
+      bool offline = false}) async {
     final hasLocal = _localStorageService.hasItem(StorageKeys.transmitters);
 
-    if (!synchronize && hasLocal) {
+    if ((!synchronize || offline) && hasLocal) {
       List<dynamic> localTransmitters =
           json.decode(_localStorageService.getItem(StorageKeys.transmitters));
 

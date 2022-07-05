@@ -47,10 +47,11 @@ class GroundStationService {
   }
 
   /// Gets multiple ground stations from the database.
-  Future<List<GroundStationEntity>> getMany({bool synchronize = false}) async {
+  Future<List<GroundStationEntity>> getMany(
+      {bool synchronize = false, bool offline = false}) async {
     final hasLocal = _localStorageService.hasItem(StorageKeys.groundStations);
 
-    if (!synchronize && hasLocal) {
+    if ((!synchronize || offline) && hasLocal) {
       List<dynamic> localStations =
           json.decode(_localStorageService.getItem(StorageKeys.groundStations));
 
