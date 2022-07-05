@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _connected = false;
   bool _loading = false;
+  bool _canceled = false;
 
   final _ipController = TextEditingController();
   final _portController = TextEditingController();
@@ -77,15 +79,35 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _checkConnection() async {
     setState(() {
       _loading = true;
+      _canceled = false;
     });
 
     _setSSH();
 
     try {
+      if (_ipController.text.isEmpty ||
+          _usernameController.text.isEmpty ||
+          _portController.text.isEmpty) {
+        return setState(() {
+          _loading = false;
+        });
+      }
+
+      final timer = Timer(const Duration(seconds: 2), () {
+        _showConnectionFailedSnackbar();
+
+        setState(() {
+          _loading = false;
+          _connected = false;
+          _canceled = true;
+        });
+      });
+
       final result = await _sshService.connect();
+      timer.cancel();
 
       setState(() {
-        _connected = result == 'session_connected';
+        _connected = !_canceled && result == 'session_connected';
       });
 
       _sshService.disconnect();
@@ -240,5 +262,23 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           )),
     );
+  }
+
+  void _showConnectionFailedSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        'Connection timed out',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            color: ThemeColors.backgroundColor,
+            fontSize: 18,
+            fontWeight: FontWeight.w500),
+      ),
+      margin: const EdgeInsets.fromLTRB(15, 5, 15, 20),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      backgroundColor: Colors.grey.shade100,
+    ));
   }
 }
