@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
@@ -12,6 +16,7 @@ import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/views/data_list.dart';
 import 'package:satnogs_visualization_tool/widgets/data_amount.dart';
+import 'package:satnogs_visualization_tool/widgets/error_dialog.dart';
 import 'package:satnogs_visualization_tool/widgets/input.dart';
 import 'package:satnogs_visualization_tool/widgets/modals/ground_station_filter_modal.dart';
 import 'package:satnogs_visualization_tool/widgets/modals/satellite_filter_modal.dart';
@@ -48,6 +53,10 @@ class _HomePageState extends State<HomePage> {
   bool _loadingTransmitters = false;
   bool _loadingStations = false;
 
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool _online = false;
+
   bool get _loading =>
       _loadingSatellites || _loadingTransmitters || _loadingStations;
 
@@ -55,9 +64,49 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
+    _initConnectivity();
+
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initConnectivity() async {
+    late ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (_) {
+      // developer.log('Couldn\'t check connectivity status', error: e);
+      return;
+    }
+
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    _updateConnectionStatus(result);
+
     _loadSatellites(false);
     _loadGroundStations(false);
     _loadTransmitters(false);
+
+    if (_online) {
+      return;
+    }
+
+    _showErrorDialog('No internet connection, could not sync');
+  }
+
+  void _updateConnectionStatus(ConnectivityResult result) {
+    setState(() {
+      _online = result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.wifi;
+    });
   }
 
   /// Loads all satellites from the local storage or database based on the
@@ -67,8 +116,8 @@ class _HomePageState extends State<HomePage> {
       _loadingSatellites = true;
     });
 
-    final List<SatelliteEntity> list =
-        await _satelliteService.getMany(synchronize: synchronize);
+    final List<SatelliteEntity> list = await _satelliteService.getMany(
+        synchronize: synchronize, offline: !_online);
 
     setState(() {
       _satellites = list;
@@ -84,8 +133,8 @@ class _HomePageState extends State<HomePage> {
       _loadingTransmitters = true;
     });
 
-    final List<TransmitterEntity> list =
-        await _transmitterService.getMany(synchronize: synchronize);
+    final List<TransmitterEntity> list = await _transmitterService.getMany(
+        synchronize: synchronize, offline: !_online);
 
     setState(() {
       _transmitters = list;
@@ -100,8 +149,8 @@ class _HomePageState extends State<HomePage> {
       _loadingStations = true;
     });
 
-    final List<GroundStationEntity> list =
-        await _groundStationService.getMany(synchronize: synchronize);
+    final List<GroundStationEntity> list = await _groundStationService.getMany(
+        synchronize: synchronize, offline: !_online);
 
     setState(() {
       _groundStations = list;
@@ -243,14 +292,25 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         actions: [
           TextButton.icon(
-              icon: Icon(Icons.cloud_sync_rounded,
-                  color: _loading ? Colors.grey : ThemeColors.warning),
+              icon: Icon(
+                  !_online
+                      ? Icons.sync_problem_rounded
+                      : Icons.cloud_sync_rounded,
+                  color: !_online
+                      ? ThemeColors.alert
+                      : _loading
+                          ? Colors.grey
+                          : ThemeColors.warning),
               label: Text(_loading ? 'SYNCING' : 'SYNC',
                   style: TextStyle(
-                      color: _loading ? Colors.grey : ThemeColors.warning,
+                      color: !_online
+                          ? ThemeColors.alert
+                          : _loading
+                              ? Colors.grey
+                              : ThemeColors.warning,
                       fontWeight: FontWeight.bold)),
               onPressed: () {
-                if (_loading) {
+                if (_loading || !_online) {
                   return;
                 }
 
@@ -379,9 +439,11 @@ class _HomePageState extends State<HomePage> {
                             child: SizedBox(
                             width:
                                 screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
-                            child: DataList(
-                                items: _filteredGroundStations,
-                                render: 'station'),
+                            child: _filteredGroundStations.isEmpty
+                                ? _buildEmptyMessage('No ground stations')
+                                : DataList(
+                                    items: _filteredGroundStations,
+                                    render: 'station'),
                           ))
                   ],
                 ),
@@ -506,5 +568,18 @@ class _HomePageState extends State<HomePage> {
         ]),
       ),
     );
+  }
+
+  /// Shows the error dialog on the screen with the given [message].
+  void _showErrorDialog(String message) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ErrorDialog(
+              message: message,
+              onConfirm: () {
+                Navigator.pop(context);
+              });
+        });
   }
 }
