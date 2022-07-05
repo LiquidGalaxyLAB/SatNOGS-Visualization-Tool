@@ -17,8 +17,8 @@ class SSHService {
         passwordOrKey: ssh.passwordOrKey);
   }
 
-  /// Connects to the current client, executes a command into
-  /// it and then disconnects.
+  /// Connects to the current client, executes a command into it and then
+  /// disconnects.
   Future<void> execute(String command) async {
     String result = await connect();
 
@@ -38,5 +38,17 @@ class SSHService {
   Future<SSHClient> disconnect() async {
     await _client.disconnect();
     return _client;
+  }
+
+  /// Connects to the current client through SFTP, executes a command into
+  /// it and then disconnects.
+  Future<void> executeSFTP(String command) async {
+    String result = await _client.connectSFTP();
+
+    if (result == 'session_connected') {
+      await _client.execute(command);
+    }
+
+    await _client.disconnectSFTP();
   }
 }
