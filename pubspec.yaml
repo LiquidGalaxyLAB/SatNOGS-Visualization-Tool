@@ -42,6 +42,8 @@ dependencies:
   html: ^0.15.0
   intl: ^0.17.0
   connectivity_plus: ^2.3.5
+  sgp4_sdp4: ^0.1.0
+  path_provider: ^2.0.11
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +69,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/images/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
