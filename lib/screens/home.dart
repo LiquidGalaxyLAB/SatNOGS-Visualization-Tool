@@ -5,13 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
+import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
 import 'package:satnogs_visualization_tool/enums/ground_station_status_enum.dart';
 import 'package:satnogs_visualization_tool/enums/satellite_status_enum.dart';
 import 'package:satnogs_visualization_tool/screens/settings.dart';
 import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
+import 'package:satnogs_visualization_tool/services/lg_service.dart';
 import 'package:satnogs_visualization_tool/services/satellite_service.dart';
+import 'package:satnogs_visualization_tool/services/tle_service.dart';
 import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/views/data_list.dart';
@@ -31,7 +35,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  LGService get _lgService => GetIt.I<LGService>();
   SatelliteService get _satelliteService => GetIt.I<SatelliteService>();
+  TLEService get _tleService => GetIt.I<TLEService>();
   TransmitterService get _transmitterService => GetIt.I<TransmitterService>();
   GroundStationService get _groundStationService =>
       GetIt.I<GroundStationService>();
@@ -42,6 +48,7 @@ class _HomePageState extends State<HomePage> {
       TextEditingController();
 
   List<SatelliteEntity> _satellites = [];
+  List<TLEEntity> _tles = [];
   List<TransmitterEntity> _transmitters = [];
   List<GroundStationEntity> _groundStations = [];
 
@@ -52,21 +59,30 @@ class _HomePageState extends State<HomePage> {
   List<GroundStationEntity> _filteredGroundStations = [];
 
   bool _loadingSatellites = false;
+  bool _loadingTLEs = false;
   bool _loadingTransmitters = false;
   bool _loadingStations = false;
+  bool _uploading = false;
+
+  String? _selectedSatellite;
+  int? _selectedStation;
 
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
   bool _online = false;
 
   bool get _loading =>
-      _loadingSatellites || _loadingTransmitters || _loadingStations;
+      _loadingSatellites ||
+      _loadingTLEs ||
+      _loadingTransmitters ||
+      _loadingStations;
 
   @override
   void initState() {
     super.initState();
 
     _initConnectivity();
+    _setSSH();
 
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
@@ -78,6 +94,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  /// Set the connectivity status when loading the screen.
   Future<void> _initConnectivity() async {
     late ConnectivityResult result;
     try {
@@ -94,6 +111,7 @@ class _HomePageState extends State<HomePage> {
     _updateConnectionStatus(result);
 
     _loadSatellites(false);
+    _loadTLEs(false);
     _loadGroundStations(false);
     _loadTransmitters(false);
 
@@ -104,12 +122,16 @@ class _HomePageState extends State<HomePage> {
     _showErrorDialog('No internet connection, could not sync');
   }
 
+  /// Updates the connectivity status according to the user network.
   void _updateConnectionStatus(ConnectivityResult result) {
     setState(() {
       _online = result == ConnectivityResult.mobile ||
           result == ConnectivityResult.wifi;
     });
   }
+
+  /// Sets the SSH client into SSH service with the local settings data.
+  void _setSSH() {}
 
   /// Loads all satellites from the local storage or database based on the
   /// [synchronize] param.
@@ -119,12 +141,31 @@ class _HomePageState extends State<HomePage> {
     });
 
     final List<SatelliteEntity> list = await _satelliteService.getMany(
-        synchronize: synchronize, offline: !_online);
+      synchronize: synchronize,
+      offline: !_online,
+      join: ['tle'],
+    );
 
     setState(() {
       _satellites = list;
       _filteredSatellites = [...list];
       _loadingSatellites = false;
+    });
+  }
+
+  /// Loads all TLEs from the local storage or database based on the
+  /// [synchronize] param.
+  Future<void> _loadTLEs(bool synchronize) async {
+    setState(() {
+      _loadingTLEs = true;
+    });
+
+    final List<TLEEntity> list =
+        await _tleService.getMany(synchronize: synchronize, offline: !_online);
+
+    setState(() {
+      _tles = list;
+      _loadingTLEs = false;
     });
   }
 
@@ -283,6 +324,109 @@ class _HomePageState extends State<HomePage> {
     _searchGroundStations(_groundStationsSearchController.text, stations);
   }
 
+  /// Views a `satellite` into the Google Earth.
+  void _viewSatellite(SatelliteEntity satellite) async {
+    if (_uploading) {
+      return;
+    }
+
+    print('view in galaxy: ${satellite.name}');
+
+    setState(() {
+      _uploading = true;
+    });
+
+    final matchTLEs =
+        _tles.where((element) => element.satelliteId == satellite.id);
+    TLEEntity? tle = matchTLEs.isNotEmpty ? matchTLEs.toList()[0] : null;
+
+    if (tle == null) {
+      setState(() {
+        _uploading = false;
+      });
+
+      return _showErrorDialog('No TLE available for this satellite!');
+    }
+
+    final tleCoord = tle.read();
+
+    final transmitters = _transmitters
+        .where((element) => element.satelliteId == satellite.id)
+        .toList();
+
+    final kml = _satelliteService.buildKml(satellite, tle, transmitters);
+    await _lgService.sendKml(
+      kml,
+      images: [
+        {
+          'name': 'satellite.png',
+          'path': 'assets/images/satellite.png',
+        }
+      ],
+    );
+
+    await _lgService.flyTo(LookAtEntity(
+      lat: tleCoord['lat']!,
+      lng: tleCoord['lng']!,
+      altitude: tleCoord['alt']! * 10,
+      range: (tleCoord['alt']! * 3).toString(),
+      tilt: '60',
+      heading: '0',
+    ));
+
+    final orbit = _satelliteService.buildOrbit(satellite, tle);
+    await _lgService.sendTour(orbit, 'Orbit');
+
+    setState(() {
+      _uploading = false;
+    });
+  }
+
+  /// Views a `ground station` into the Google Earth.
+  void _viewGroundStation(GroundStationEntity station) async {
+    if (_uploading) {
+      return;
+    }
+
+    print('view in galaxy: ${station.name}');
+
+    Map<String, dynamic>? extraData;
+
+    if (_online) {
+      extraData = await _groundStationService.getOne(station.id);
+    }
+
+    setState(() {
+      _uploading = true;
+    });
+
+    final kml = _groundStationService.buildKml(station, extraData: extraData);
+    await _lgService.sendKml(
+      kml,
+      images: [
+        {
+          'name': 'station.png',
+          'path': 'assets/images/station.png',
+        }
+      ],
+    );
+
+    await _lgService.flyTo(LookAtEntity(
+      lat: station.lat,
+      lng: station.lng,
+      range: '1500',
+      tilt: '60',
+      heading: '0',
+    ));
+
+    final orbit = _groundStationService.buildOrbit(station);
+    await _lgService.sendTour(orbit, 'Orbit');
+
+    setState(() {
+      _uploading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -293,6 +437,21 @@ class _HomePageState extends State<HomePage> {
         shadowColor: Colors.transparent,
         elevation: 0,
         actions: [
+          TextButton.icon(
+            icon:
+                const Icon(Icons.cleaning_services_rounded, color: Colors.grey),
+            label: const Text("CLEAR",
+                style:
+                    TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+            onPressed: () {
+              setState(() {
+                _selectedSatellite = null;
+                _selectedStation = null;
+              });
+
+              _lgService.clearKml();
+            },
+          ),
           TextButton.icon(
               icon: Icon(
                   !_online
@@ -317,6 +476,7 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 _loadSatellites(true);
+                _loadTLEs(true);
                 _loadGroundStations(true);
                 _loadTransmitters(true);
               }),
@@ -396,6 +556,22 @@ class _HomePageState extends State<HomePage> {
                                 : DataList(
                                     items: _filteredSatellites,
                                     render: 'satellite',
+                                    selected: {'satellite': _selectedSatellite},
+                                    onSatelliteOrbit: (value) {
+                                      if (value) {
+                                        _lgService.startTour('Orbit');
+                                      } else {
+                                        _lgService.stopTour();
+                                      }
+                                    },
+                                    onSatelliteView: (satellite) {
+                                      setState(() {
+                                        _selectedSatellite = satellite.id;
+                                        _selectedStation = null;
+                                      });
+
+                                      _viewSatellite(satellite);
+                                    },
                                   ),
                           ))
                   ],
@@ -444,7 +620,24 @@ class _HomePageState extends State<HomePage> {
                                 ? _buildEmptyMessage('No ground stations')
                                 : DataList(
                                     items: _filteredGroundStations,
-                                    render: 'station'),
+                                    render: 'station',
+                                    selected: {'station': _selectedStation},
+                                    onStationOrbit: (value) {
+                                      if (value) {
+                                        _lgService.startTour('Orbit');
+                                      } else {
+                                        _lgService.stopTour();
+                                      }
+                                    },
+                                    onStationView: (station) {
+                                      setState(() {
+                                        _selectedSatellite = null;
+                                        _selectedStation = station.id;
+                                      });
+
+                                      _viewGroundStation(station);
+                                    },
+                                  ),
                           ))
                   ],
                 ),
@@ -472,12 +665,16 @@ class _HomePageState extends State<HomePage> {
           color: ThemeColors.primaryColor,
         ),
         Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Text(title,
-                style: TextStyle(
-                    color: ThemeColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18)))
+          padding: const EdgeInsets.only(left: 8),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: ThemeColors.primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+        )
       ],
     );
   }
