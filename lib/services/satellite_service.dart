@@ -74,7 +74,7 @@ class SatelliteService {
     final lookAt = LookAtEntity(
       lng: coord['lng']!,
       lat: coord['lat']!,
-      altitude: coord['alt']! * 10,
+      altitude: coord['alt']! * 1,
       range: (coord['alt']! * 3).toString(),
       tilt: '60',
       heading: '0',
@@ -131,7 +131,7 @@ class SatelliteService {
     final lookAt = LookAtEntity(
       lng: coord['lng']!,
       lat: coord['lat']!,
-      altitude: coord['alt']! * 10,
+      altitude: coord['alt']! * 1,
       range: (coord['alt']! * 3).toString(),
       tilt: '60',
       heading: '0',

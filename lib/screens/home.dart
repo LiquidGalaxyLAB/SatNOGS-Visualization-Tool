@@ -368,7 +368,7 @@ class _HomePageState extends State<HomePage> {
     await _lgService.flyTo(LookAtEntity(
       lat: tleCoord['lat']!,
       lng: tleCoord['lng']!,
-      altitude: tleCoord['alt']! * 10,
+      altitude: tleCoord['alt']! * 1,
       range: (tleCoord['alt']! * 3).toString(),
       tilt: '60',
       heading: '0',
