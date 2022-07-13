@@ -646,13 +646,13 @@ class _HomePageState extends State<HomePage> {
           ))
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'View satellite by NORAD id',
-        child: const Icon(Icons.manage_search_rounded, size: 28),
-        backgroundColor: ThemeColors.primaryColor,
-        foregroundColor: ThemeColors.backgroundColor,
-        onPressed: () {},
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   tooltip: 'View satellite by NORAD id',
+      //   child: const Icon(Icons.manage_search_rounded, size: 28),
+      //   backgroundColor: ThemeColors.primaryColor,
+      //   foregroundColor: ThemeColors.backgroundColor,
+      //   onPressed: () {},
+      // ),
     );
   }
 
