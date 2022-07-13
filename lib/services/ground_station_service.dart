@@ -60,7 +60,7 @@ class GroundStationService {
       data[key.text] = value == null ? '' : value.text;
     }
 
-    final elAntennas = el.querySelector('antennas');
+    final elAntennas = el.querySelector('.antennas .front-data');
     final antennas = elAntennas?.children.length ?? 0;
     data['Antennas'] = antennas;
 
