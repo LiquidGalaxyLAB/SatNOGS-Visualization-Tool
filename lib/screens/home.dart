@@ -343,6 +343,8 @@ class _HomePageState extends State<HomePage> {
     if (tle == null) {
       setState(() {
         _uploading = false;
+        _selectedSatellite = null;
+        _selectedStation = null;
       });
 
       return _showErrorDialog('No TLE available for this satellite!');
