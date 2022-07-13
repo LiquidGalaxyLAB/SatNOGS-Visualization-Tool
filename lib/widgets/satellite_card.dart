@@ -5,10 +5,26 @@ import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
 import 'package:satnogs_visualization_tool/enums/satellite_status_enum.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 
-class SatelliteCard extends StatelessWidget {
-  const SatelliteCard({Key? key, required this.satellite}) : super(key: key);
+class SatelliteCard extends StatefulWidget {
+  const SatelliteCard({
+    Key? key,
+    required this.satellite,
+    required this.selected,
+    required this.onOrbit,
+    required this.onView,
+  }) : super(key: key);
 
+  final bool selected;
   final SatelliteEntity satellite;
+  final Function(bool) onOrbit;
+  final Function(SatelliteEntity) onView;
+
+  @override
+  State<SatelliteCard> createState() => _SatelliteCardState();
+}
+
+class _SatelliteCardState extends State<SatelliteCard> {
+  bool _orbiting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +32,9 @@ class SatelliteCard extends StatelessWidget {
 
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final satelliteHasDate = satellite.launched.isNotEmpty ||
-        satellite.deployed.isNotEmpty ||
-        satellite.decayed.isNotEmpty;
+    final satelliteHasDate = widget.satellite.launched.isNotEmpty ||
+        widget.satellite.deployed.isNotEmpty ||
+        widget.satellite.decayed.isNotEmpty;
 
     return Container(
         width: screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
@@ -39,20 +55,21 @@ class SatelliteCard extends StatelessWidget {
                       children: [
                         Flexible(
                             child: Text(
-                          satellite.name,
+                          widget.satellite.name,
                           style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
                               fontSize: 20),
                         )),
-                        Text(satellite.getStatusLabel().toUpperCase(),
+                        Text(widget.satellite.getStatusLabel().toUpperCase(),
                             style: TextStyle(
-                              color: satellite.status ==
+                              color: widget.satellite.status ==
                                       SatelliteStatusEnum.ALIVE
                                   ? ThemeColors.success
-                                  : satellite.status == SatelliteStatusEnum.DEAD
+                                  : widget.satellite.status ==
+                                          SatelliteStatusEnum.DEAD
                                       ? ThemeColors.alert
-                                      : satellite.status ==
+                                      : widget.satellite.status ==
                                               SatelliteStatusEnum.FUTURE
                                           ? ThemeColors.info
                                           : ThemeColors.warning,
@@ -60,12 +77,13 @@ class SatelliteCard extends StatelessWidget {
                               fontSize: 16,
                             ))
                       ]),
-                  satellite.altNames.isNotEmpty
+                  widget.satellite.altNames.isNotEmpty
                       ? Row(
                           children: [
                             Flexible(
                               child: Text(
-                                  satellite.altNames.replaceAll('\r\n', ' | '),
+                                  widget.satellite.altNames
+                                      .replaceAll('\r\n', ' | '),
                                   style: const TextStyle(color: Colors.grey)),
                             )
                           ],
@@ -78,24 +96,27 @@ class SatelliteCard extends StatelessWidget {
                     EdgeInsets.symmetric(vertical: satelliteHasDate ? 16 : 0),
                 child: Column(
                   children: [
-                    satellite.launched.isNotEmpty
+                    widget.satellite.launched.isNotEmpty
                         ? Row(
                             children: [
-                              _buildDateString(satellite.launched, 'Launched')
+                              _buildDateString(
+                                  widget.satellite.launched, 'Launched')
                             ],
                           )
                         : Container(),
-                    satellite.deployed.isNotEmpty
+                    widget.satellite.deployed.isNotEmpty
                         ? Row(
                             children: [
-                              _buildDateString(satellite.deployed, 'Deployed')
+                              _buildDateString(
+                                  widget.satellite.deployed, 'Deployed')
                             ],
                           )
                         : Container(),
-                    satellite.decayed.isNotEmpty
+                    widget.satellite.decayed.isNotEmpty
                         ? Row(
                             children: [
-                              _buildDateString(satellite.decayed, 'Decayed')
+                              _buildDateString(
+                                  widget.satellite.decayed, 'Decayed')
                             ],
                           )
                         : Container(),
@@ -108,8 +129,8 @@ class SatelliteCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      satellite.noradId != null
-                          ? satellite.noradId.toString()
+                      widget.satellite.noradId != null
+                          ? widget.satellite.noradId.toString()
                           : '-',
                       style: TextStyle(
                           color: ThemeColors.primaryColor,
@@ -120,20 +141,37 @@ class SatelliteCard extends StatelessWidget {
                       style: TextButton.styleFrom(
                           padding: const EdgeInsets.all(0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          alignment: Alignment.centerRight,
                           minimumSize: const Size(120, 24)),
                       icon: Icon(
-                        Icons.travel_explore_rounded,
+                        widget.selected
+                            ? (!_orbiting
+                                ? Icons.flip_camera_android_rounded
+                                : Icons.stop_rounded)
+                            : Icons.travel_explore_rounded,
                         color: ThemeColors.primaryColor,
                       ),
-                      label: const Text(
-                        'VIEW IN GALAXY',
-                        style: TextStyle(
+                      label: Text(
+                        widget.selected
+                            ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
+                            : 'VIEW IN GALAXY',
+                        style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 14),
                       ),
                       onPressed: () {
-                        print('view in galaxy: ${satellite.name}');
+                        if (widget.selected) {
+                          widget.onOrbit(!_orbiting);
+
+                          setState(() {
+                            _orbiting = !_orbiting;
+                          });
+
+                          return;
+                        }
+
+                        widget.onView(widget.satellite);
                       },
                     )
                   ],
