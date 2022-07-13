@@ -106,16 +106,20 @@ class _SettingsPageState extends State<SettingsPage> {
       final result = await _sshService.connect();
       timer.cancel();
 
-      setState(() {
-        _connected = _canceled ? _connected : result == 'session_connected';
-      });
+      if (!_canceled) {
+        setState(() {
+          _connected = result == 'session_connected';
+        });
+      }
 
       _sshService.disconnect();
     } on Exception catch (e) {
       print(e);
-      setState(() {
-        _connected = false;
-      });
+      if (!_canceled) {
+        setState(() {
+          _connected = false;
+        });
+      }
     } catch (e) {
       print(e);
     } finally {

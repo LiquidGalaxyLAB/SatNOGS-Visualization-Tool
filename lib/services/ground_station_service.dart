@@ -1,9 +1,15 @@
 import 'dart:convert';
 
 import 'package:get_it/get_it.dart';
+import 'package:html/dom.dart';
 import 'package:http/http.dart' as http;
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
-import 'package:satnogs_visualization_tool/enums/ground_station_status_enum.dart';
+import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/line_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/orbit_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/placemark_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/point_entity.dart';
 import 'package:satnogs_visualization_tool/services/local_storage_service.dart';
 import 'package:satnogs_visualization_tool/utils/api.dart';
 import 'package:satnogs_visualization_tool/utils/storage_keys.dart';
@@ -28,7 +34,7 @@ class GroundStationService {
   };
 
   /// Gets one ground station from the database according to the given [id].
-  Future<GroundStationEntity> getOne(int id) async {
+  Future<Map<String, dynamic>> getOne(int id) async {
     final response = await http.get(
       Uri.parse('${API.baseNetworkUrl}/$_endpoint/$id'),
       headers: _requestHeaders,
@@ -36,14 +42,29 @@ class GroundStationService {
 
     final res = response.body;
 
-    // TODO: implement the html info extraction
-    // return GroundStationEntity.fromMap(res);
-    return GroundStationEntity(
-        id: id,
-        name: 'name',
-        lat: 38.555972,
-        lng: -78.062523,
-        status: GroundStationStatusEnum.OFFLINE);
+    final el = Document().createElement('');
+    el.innerHtml = res;
+
+    final dataLines = el.querySelectorAll('.front-line');
+
+    Map<String, dynamic> data = {};
+
+    for (var e in dataLines) {
+      final key = e.querySelector('.label');
+      final value = e.querySelector('.front-data');
+
+      if (key == null) {
+        continue;
+      }
+
+      data[key.text] = value == null ? '' : value.text;
+    }
+
+    final elAntennas = el.querySelector('antennas');
+    final antennas = elAntennas?.children.length ?? 0;
+    data['Antennas'] = antennas;
+
+    return data;
   }
 
   /// Gets multiple ground stations from the database.
@@ -69,5 +90,69 @@ class GroundStationService {
 
     final res = json.decode(response.body) as List<dynamic>;
     return res.map((gs) => GroundStationEntity.fromMap(gs)).toList();
+  }
+
+  /// Builds and returns a satellite `KML` [String] according to the given
+  /// [station].
+  KMLEntity buildKml(
+    GroundStationEntity station, {
+    Map<String, dynamic>? extraData,
+  }) {
+    final lookAt = LookAtEntity(
+      lng: station.lng,
+      lat: station.lat,
+      range: '1500',
+      tilt: '60',
+      heading: '0',
+    );
+
+    final point = PointEntity(
+      lat: lookAt.lat,
+      lng: lookAt.lng,
+      altitude: lookAt.altitude,
+    );
+
+    final placemark = PlacemarkEntity(
+      id: station.id.toString(),
+      name: '${station.name} (${station.getStatusLabel().toUpperCase()})',
+      lookAt: lookAt,
+      point: point,
+      description: '',
+      balloonContent:
+          extraData != null ? station.balloonContent(extraData) : '',
+      icon: 'station.png',
+      line: LineEntity(id: station.id.toString(), coordinates: []),
+    );
+
+    // final screenOverlay = ScreenOverlayEntity(
+    //   name: satellite.name,
+    //   icon: 'http://lg1:81/satellite.png',
+    //   overlayX: 1,
+    //   overlayY: 1,
+    //   screenX: 1,
+    //   screenY: 1,
+    //   sizeX: 200,
+    //   sizeY: 300,
+    // );
+
+    return KMLEntity(
+      name: station.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
+      content: placemark.tag,
+    );
+  }
+
+  /// Builds an `orbit` KML based on the given [station].
+  ///
+  /// Returns a [String] that represents the `orbit` KML.
+  String buildOrbit(GroundStationEntity station) {
+    final lookAt = LookAtEntity(
+      lng: station.lng,
+      lat: station.lat,
+      range: '1500',
+      tilt: '60',
+      heading: '0',
+    );
+
+    return OrbitEntity.buildOrbit(OrbitEntity.tag(lookAt));
   }
 }

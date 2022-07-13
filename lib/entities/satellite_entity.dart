@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/enums/satellite_status_enum.dart';
 
 /// Entity that represents the `satellite`, with all of its properties and methods.
@@ -52,7 +54,10 @@ class SatelliteEntity {
   /// Property that defines a `list of associated satellites ids`.
   List<dynamic> associatedSatellites;
 
+  TLEEntity? tle;
+
   SatelliteEntity({
+    this.tle,
     required this.id,
     required this.noradId,
     required this.name,
@@ -70,6 +75,28 @@ class SatelliteEntity {
     required this.citation,
     required this.associatedSatellites,
   });
+
+  /// Gets the balloon content from the current satellite.
+  String balloonContent(int transmitterAmount) => '''
+    <b><font size="+2">$name <font color="#5D5D5D">(${getStatusLabel().toUpperCase()})</font></font></b>
+    <br/><br/>
+    ${image.isNotEmpty ? '<img height="200" src="https://db-satnogs.freetls.fastly.net/media/$image"><br/><br/>' : ''}
+    <b>NORAD ID:</b> $noradId
+    <br/>
+    <b>Alternames:</b> ${altNames.replaceAll('\r\n', ' | ')}
+    <br/>
+    <b>Countries:</b> ${countries.replaceAll('\r\n', ' | ')}
+    <br/>
+    <b>Operator:</b> $satOperator
+    <br/>
+    <b>Transmitters:</b> $transmitterAmount
+    <br/>
+    <b>Launched:</b> ${launched.isNotEmpty ? _buildDateString(launched) : 'Never'}
+    <br/>
+    <b>Deployed:</b> ${deployed.isNotEmpty ? _buildDateString(deployed) : 'Never'}
+    <br/>
+    <b>Decayed:</b> ${decayed.isNotEmpty ? _buildDateString(decayed) : 'Never'}
+  ''';
 
   /// Gets the satellite status from the given string.
   static SatelliteStatusEnum parseStatus(String status) {
@@ -107,24 +134,56 @@ class SatelliteEntity {
     }
   }
 
+  /// Converts the current [SatelliteEntity] to a [Map].
+  Map<String, dynamic> toMap() {
+    return {
+      'sat_id': id,
+      'norad_cat_id': noradId,
+      'name': name,
+      'names': altNames,
+      'image': image,
+      'status': getStatusLabel(),
+      'decayed': decayed.isEmpty ? null : '',
+      'launched': launched.isEmpty ? null : '',
+      'deployed': deployed.isEmpty ? null : '',
+      'website': website,
+      'operator': satOperator,
+      'countries': countries,
+      'telemetries': telemetries,
+      'updated': updated,
+      'citation': citation,
+      'associated_satellites': associatedSatellites,
+      'tle': tle != null ? tle!.toMap() : null,
+    };
+  }
+
   /// Gets a [SatelliteEntity] from the given [map].
   factory SatelliteEntity.fromMap(Map map) {
     return SatelliteEntity(
-        id: map['sat_id'],
-        noradId: map['norad_cat_id'],
-        name: map['name'],
-        altNames: map['names'],
-        image: map['image'],
-        status: SatelliteEntity.parseStatus(map['status']),
-        decayed: map['decayed'] ?? '',
-        launched: map['launched'] ?? '',
-        deployed: map['deployed'] ?? '',
-        website: map['website'],
-        satOperator: map['operator'],
-        countries: map['countries'],
-        telemetries: map['telemetries'],
-        updated: map['updated'],
-        citation: map['citation'],
-        associatedSatellites: map['associated_satellites']);
+      id: map['sat_id'],
+      noradId: map['norad_cat_id'],
+      name: map['name'],
+      altNames: map['names'],
+      image: map['image'],
+      status: SatelliteEntity.parseStatus(map['status']),
+      decayed: map['decayed'] ?? '',
+      launched: map['launched'] ?? '',
+      deployed: map['deployed'] ?? '',
+      website: map['website'],
+      satOperator: map['operator'],
+      countries: map['countries'],
+      telemetries: map['telemetries'],
+      updated: map['updated'],
+      citation: map['citation'],
+      associatedSatellites: map['associated_satellites'],
+      tle: map['tle'] != null ? TLEEntity.fromMap(map['tle']) : null,
+    );
+  }
+
+  /// Gets a date string according to the given date.
+  String _buildDateString(String value) {
+    final date = DateFormat.yMMMMd('en_US');
+    final hour = DateFormat.jm();
+    return '${date.format(DateTime.parse(value))} ${hour.format(DateTime.parse(value))}';
   }
 }

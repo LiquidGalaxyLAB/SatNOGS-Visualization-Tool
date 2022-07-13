@@ -4,11 +4,26 @@ import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
 import 'package:satnogs_visualization_tool/enums/ground_station_status_enum.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 
-class GroundStationCard extends StatelessWidget {
-  const GroundStationCard({Key? key, required this.groundStation})
-      : super(key: key);
+class GroundStationCard extends StatefulWidget {
+  const GroundStationCard({
+    Key? key,
+    required this.groundStation,
+    required this.selected,
+    required this.onOrbit,
+    required this.onView,
+  }) : super(key: key);
 
+  final bool selected;
   final GroundStationEntity groundStation;
+  final Function(bool) onOrbit;
+  final Function(GroundStationEntity) onView;
+
+  @override
+  State<GroundStationCard> createState() => _GroundStationCardState();
+}
+
+class _GroundStationCardState extends State<GroundStationCard> {
+  bool _orbiting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -33,18 +48,18 @@ class GroundStationCard extends StatelessWidget {
                   children: [
                     Flexible(
                         child: Text(
-                      groundStation.name,
+                      widget.groundStation.name,
                       style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 20),
                     )),
-                    Text(groundStation.getStatusLabel().toUpperCase(),
+                    Text(widget.groundStation.getStatusLabel().toUpperCase(),
                         style: TextStyle(
-                          color: groundStation.status ==
+                          color: widget.groundStation.status ==
                                   GroundStationStatusEnum.ONLINE
                               ? ThemeColors.success
-                              : groundStation.status ==
+                              : widget.groundStation.status ==
                                       GroundStationStatusEnum.OFFLINE
                                   ? ThemeColors.alert
                                   : ThemeColors.warning,
@@ -58,13 +73,13 @@ class GroundStationCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text('Latitude: ${groundStation.lat}',
+                        Text('Latitude: ${widget.groundStation.lat}',
                             style: const TextStyle(color: Colors.grey)),
                       ],
                     ),
                     Row(
                       children: [
-                        Text('Longitude: ${groundStation.lng}',
+                        Text('Longitude: ${widget.groundStation.lng}',
                             style: const TextStyle(color: Colors.grey)),
                       ],
                     )
@@ -75,7 +90,7 @@ class GroundStationCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    groundStation.id.toString(),
+                    widget.groundStation.id.toString(),
                     style: TextStyle(
                         color: ThemeColors.primaryColor,
                         fontWeight: FontWeight.bold,
@@ -83,22 +98,40 @@ class GroundStationCard extends StatelessWidget {
                   ),
                   TextButton.icon(
                     style: TextButton.styleFrom(
-                        padding: const EdgeInsets.all(0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        minimumSize: const Size(120, 24)),
+                      padding: const EdgeInsets.all(0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      alignment: Alignment.centerRight,
+                      minimumSize: const Size(120, 24),
+                    ),
                     icon: Icon(
-                      Icons.travel_explore_rounded,
+                      widget.selected
+                          ? (!_orbiting
+                              ? Icons.flip_camera_android_rounded
+                              : Icons.stop_rounded)
+                          : Icons.travel_explore_rounded,
                       color: ThemeColors.primaryColor,
                     ),
-                    label: const Text(
-                      'VIEW IN GALAXY',
-                      style: TextStyle(
+                    label: Text(
+                      widget.selected
+                          ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
+                          : 'VIEW IN GALAXY',
+                      style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14),
                     ),
                     onPressed: () {
-                      print('view in galaxy: ${groundStation.name}');
+                      if (widget.selected) {
+                        widget.onOrbit(!_orbiting);
+
+                        setState(() {
+                          _orbiting = !_orbiting;
+                        });
+
+                        return;
+                      }
+
+                      widget.onView(widget.groundStation);
                     },
                   )
                 ],

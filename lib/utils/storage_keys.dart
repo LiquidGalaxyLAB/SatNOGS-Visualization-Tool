@@ -6,6 +6,9 @@ class StorageKeys {
   /// SVT__SATELLITES
   static const satellites = 'SVT__SATELLITES';
 
+  /// SVT__TLE
+  static const tle = 'SVT__TLE';
+
   /// SVT__TRANSMITTERS
   static const transmitters = 'SVT__TRANSMITTERS';
 
