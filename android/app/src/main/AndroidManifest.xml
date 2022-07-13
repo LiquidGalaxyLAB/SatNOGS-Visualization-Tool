@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="satnogs_visualization_tool"
+        android:label="SatNOGS Visualization Tool"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
