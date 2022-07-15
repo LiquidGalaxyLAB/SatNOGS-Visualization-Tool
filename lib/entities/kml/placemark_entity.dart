@@ -43,7 +43,6 @@ class PlacemarkEntity {
   /// Property that defines the placemark `tag` according to its current
   /// properties.
   String get tag => '''
-    <open>1</open>
     <Style id="high-$id">
       <IconStyle>
         <scale>3.0</scale>
@@ -72,8 +71,8 @@ class PlacemarkEntity {
       <LineStyle>
         <color>ff4444ff</color>
         <colorMode>normal</colorMode>
-        <width>5</width>
-        <gx:outerColor>ffffffff</gx:outerColor>
+        <width>5.0</width>
+        <gx:outerColor>ff4444ff</gx:outerColor>
         <gx:outerWidth>0.0</gx:outerWidth>
         <gx:physicalWidth>0.0</gx:physicalWidth>
         <gx:labelVisibility>0</gx:labelVisibility>
@@ -98,6 +97,7 @@ class PlacemarkEntity {
       <gx:balloonVisibility>1</gx:balloonVisibility>
     </Placemark>
     <Placemark>
+      <name>Orbit - $name</name>
       <styleUrl>line-$id</styleUrl>
       ${line.tag}
     </Placemark>

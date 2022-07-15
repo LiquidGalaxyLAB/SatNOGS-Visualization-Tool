@@ -75,7 +75,7 @@ class SatelliteService {
       lng: coord['lng']!,
       lat: coord['lat']!,
       altitude: coord['alt']! * 1,
-      range: (coord['alt']! * 3).toString(),
+      range: '400000',
       tilt: '60',
       heading: '0',
     );
@@ -96,6 +96,7 @@ class SatelliteService {
       icon: 'satellite.png',
       line: LineEntity(
         id: satellite.id,
+        altitudeMode: 'absolute',
         coordinates: LineEntity.generateMockedLine(
           point.lng,
           point.lat,
@@ -132,7 +133,7 @@ class SatelliteService {
       lng: coord['lng']!,
       lat: coord['lat']!,
       altitude: coord['alt']! * 1,
-      range: (coord['alt']! * 3).toString(),
+      range: '400000',
       tilt: '60',
       heading: '0',
     );
