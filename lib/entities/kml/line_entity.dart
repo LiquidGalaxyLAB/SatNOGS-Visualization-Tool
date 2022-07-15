@@ -42,29 +42,31 @@ class LineEntity {
   ///   ],
   /// )
   /// line.tag => '''
-  ///   <LineString id="123abc">
-  ///     <gx:altitudeOffset>0</gx:altitudeOffset>
+  ///   <Polygon id="123abc">
   ///     <extrude>0</extrude>
-  ///     <tessellate>0</tessellate>
-  ///     <altitudeMode>0</altitudeMode>
-  ///     <gx:drawOrder>0</gx:drawOrder>
-  ///     <coordinates>
-  ///       32,-74,0 34,-78,0
-  ///     </coordinates>
-  ///   </LineString>
+  ///     <altitudeMode>relativeToGround</altitudeMode>
+  ///     <outerBoundaryIs>
+  ///       <LinearRing>
+  ///         <coordinates>
+  ///           32,-74,0 34,-78,0
+  ///         </coordinates>
+  ///       </LinearRing>
+  ///     </outerBoundaryIs>
+  ///   </Polygon>
   /// '''
   /// ```
   String get tag => '''
-      <LineString id="$id">
-        <gx:altitudeOffset>0</gx:altitudeOffset>
+      <Polygon id="$id">
         <extrude>0</extrude>
-        <tessellate>0</tessellate>
         <altitudeMode>$altitudeMode</altitudeMode>
-        <gx:drawOrder>0</gx:drawOrder>
-        <coordinates>
-          $linearCoordinates
-        </coordinates>
-      </LineString>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              $linearCoordinates
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
     ''';
 
   /// Property that defines the line `linear coordinates` according to its
