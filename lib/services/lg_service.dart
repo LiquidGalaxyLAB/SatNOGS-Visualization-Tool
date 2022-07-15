@@ -36,6 +36,31 @@ class LGService {
     await query('exittour=true');
   }
 
+  Future<void> sendMasterKml(KMLEntity kml,
+      {List<Map<String, String>> images = const []}) async {
+    const fileName = 'master_1.kml';
+
+    for (var img in images) {
+      final image = await _fileService.createImage(img['name']!, img['path']!);
+      await _sshService.upload(image.path);
+    }
+
+    final kmlContent = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+  <Document id="master_1">
+  </Document>
+</kml>
+''';
+
+    print(kmlContent);
+
+    await _sshService
+        .execute('echo \'$kmlContent\' > /var/www/html/kml/$fileName');
+    // await _sshService
+    //     .execute('echo "\n$_url/kml/$fileName" >> /var/www/html/kmls.txt');
+  }
+
   /// Sends a the given [kml] to the Liquid Galaxy system.
   ///
   /// It also accepts a [List] of images represents by [Map]s. The [images] must
