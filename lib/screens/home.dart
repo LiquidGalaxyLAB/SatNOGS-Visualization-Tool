@@ -357,6 +357,8 @@ class _HomePageState extends State<HomePage> {
         .toList();
 
     final kml = _satelliteService.buildKml(satellite, tle, transmitters);
+    // await _lgService.sendMasterKml(kml);
+
     await _lgService.sendKml(
       kml,
       images: [
@@ -371,7 +373,7 @@ class _HomePageState extends State<HomePage> {
       lat: tleCoord['lat']!,
       lng: tleCoord['lng']!,
       altitude: tleCoord['alt']! * 1,
-      range: (tleCoord['alt']! * 3).toString(),
+      range: '400000',
       tilt: '60',
       heading: '0',
     ));
