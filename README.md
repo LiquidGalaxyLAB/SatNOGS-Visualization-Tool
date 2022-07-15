@@ -28,10 +28,6 @@ $ flutter run --no-sound-null-safety
 ```
 > The `--no-sound-null-safety` flag is necessary due to the `ssh` package.
 
-If you're using VSCode IDE, it's ideal to use some extensions:
-- ESLint
-- Prettier - Code formatter
-
 ### Building the app
 In order to build the app, run the following command:
 ```bash
