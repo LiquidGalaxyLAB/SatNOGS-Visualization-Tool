@@ -77,6 +77,9 @@ class PlacemarkEntity {
         <gx:physicalWidth>0.0</gx:physicalWidth>
         <gx:labelVisibility>0</gx:labelVisibility>
       </LineStyle>
+      <PolyStyle>
+        <color>00000000</color>
+      </PolyStyle>
     </Style>
     <StyleMap id="$id">
       <Pair>

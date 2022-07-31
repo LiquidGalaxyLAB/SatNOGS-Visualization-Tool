@@ -86,6 +86,8 @@ class SatelliteService {
       altitude: lookAt.altitude,
     );
 
+    satellite.tle = tle;
+
     final placemark = PlacemarkEntity(
       id: satellite.id,
       name: '${satellite.name} (${satellite.getStatusLabel().toUpperCase()})',
@@ -97,11 +99,7 @@ class SatelliteService {
       line: LineEntity(
         id: satellite.id,
         altitudeMode: 'absolute',
-        coordinates: LineEntity.generateMockedLine(
-          point.lng,
-          point.lat,
-          point.altitude,
-        ),
+        coordinates: satellite.getOrbitCoordinates(),
       ),
     );
 

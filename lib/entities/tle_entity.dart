@@ -35,16 +35,15 @@ class TLEEntity {
 
   /// Reads the current [TLEEntity] and returns a [Map] containing all extracted
   /// information.
-  Map<String, double> read() {
+  Map<String, double> read({ double displacement = 3.3 / 24.0 }) {
     final datetime = DateTime.now();
     final TLE tle = TLE(line0, line1, line2);
     final Orbit orbit = Orbit(tle);
-    print('is SGP4: ${orbit.period() < 255 * 60}');
 
     final utcTime = Julian.fromFullDate(datetime.year, datetime.month,
                 datetime.day, datetime.hour, datetime.minute)
-            .getDate() +
-        4 / 24.0;
+            .getDate()
+             + displacement;
 
     final Eci eciPos =
         orbit.getPosition((utcTime - orbit.epoch().getDate()) * MIN_PER_DAY);
@@ -53,9 +52,6 @@ class TLEEntity {
     if (coord.lon > PI) {
       coord.lon -= TWOPI;
     }
-
-    print(
-        'lat: ${rad2deg(coord.lat)} - lng: ${rad2deg(coord.lon)} - alt: ${rad2deg(coord.alt)} | ${coord.alt}');
 
     return {
       'lat': rad2deg(coord.lat),
