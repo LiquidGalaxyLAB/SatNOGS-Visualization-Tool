@@ -43,7 +43,7 @@ class _SatelliteCardState extends State<SatelliteCard> {
             border: Border.all(color: ThemeColors.cardBorder),
             borderRadius: BorderRadius.circular(10)),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -139,10 +139,11 @@ class _SatelliteCardState extends State<SatelliteCard> {
                     ),
                     TextButton.icon(
                       style: TextButton.styleFrom(
-                          padding: const EdgeInsets.all(0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          alignment: Alignment.centerRight,
-                          minimumSize: const Size(120, 24)),
+                        padding: const EdgeInsets.all(0),
+                        tapTargetSize: MaterialTapTargetSize.padded,
+                        alignment: Alignment.centerRight,
+                        minimumSize: const Size(120, 24),
+                      ),
                       icon: Icon(
                         widget.selected
                             ? (!_orbiting

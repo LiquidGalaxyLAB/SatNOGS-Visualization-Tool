@@ -54,7 +54,7 @@ class PlacemarkEntity {
     </Style>
     <Style id="normal-$id">
       <IconStyle>
-        <scale>2.0</scale>
+        <scale>2.5</scale>
         <Icon>
           <href>http://lg1:81/$icon</href>
         </Icon>
