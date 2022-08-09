@@ -8,6 +8,7 @@ import 'package:satnogs_visualization_tool/entities/ssh_entity.dart';
 import 'package:satnogs_visualization_tool/services/settings_service.dart';
 import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
+import 'package:satnogs_visualization_tool/utils/snackbar.dart';
 import 'package:satnogs_visualization_tool/widgets/button.dart';
 import 'package:satnogs_visualization_tool/widgets/input.dart';
 
@@ -94,7 +95,7 @@ class _SettingsPageState extends State<SettingsPage> {
       }
 
       final timer = Timer(const Duration(seconds: 5), () {
-        _showConnectionFailedSnackbar();
+        showSnackbar(context, 'Connection failed');
 
         setState(() {
           _loading = false;
@@ -268,24 +269,5 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           )),
     );
-  }
-
-  /// Shows a snackbar to inform that the SSH connection failed.
-  void _showConnectionFailedSnackbar() {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        'Connection failed',
-        style: TextStyle(
-          color: ThemeColors.backgroundColor,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      margin: const EdgeInsets.fromLTRB(16, 5, 16, 16),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      backgroundColor: Colors.grey.shade100.withOpacity(0.95),
-    ));
   }
 }
