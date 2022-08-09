@@ -93,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
         });
       }
 
-      final timer = Timer(const Duration(seconds: 10), () {
+      final timer = Timer(const Duration(seconds: 5), () {
         _showConnectionFailedSnackbar();
 
         setState(() {
@@ -114,14 +114,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
       _sshService.disconnect();
     } on Exception catch (e) {
-      print(e);
+      // ignore: avoid_print
+      print('$e');
       if (!_canceled) {
         setState(() {
           _connected = false;
         });
       }
     } catch (e) {
-      print(e);
+      // ignore: avoid_print
+      print('$e');
     } finally {
       setState(() {
         _loading = false;
@@ -272,18 +274,18 @@ class _SettingsPageState extends State<SettingsPage> {
   void _showConnectionFailedSnackbar() {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(
-        'Connection timed out',
-        textAlign: TextAlign.center,
+        'Connection failed',
         style: TextStyle(
-            color: ThemeColors.backgroundColor,
-            fontSize: 18,
-            fontWeight: FontWeight.w500),
+          color: ThemeColors.backgroundColor,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      margin: const EdgeInsets.fromLTRB(15, 5, 15, 20),
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      margin: const EdgeInsets.fromLTRB(16, 5, 16, 16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Colors.grey.shade100.withOpacity(0.95),
     ));
   }
 }
