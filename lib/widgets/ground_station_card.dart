@@ -11,10 +11,13 @@ class GroundStationCard extends StatefulWidget {
     required this.selected,
     required this.onOrbit,
     required this.onView,
+    required this.disabled,
   }) : super(key: key);
 
   final bool selected;
+  final bool disabled;
   final GroundStationEntity groundStation;
+
   final Function(bool) onOrbit;
   final Function(GroundStationEntity) onView;
 
@@ -109,18 +112,24 @@ class _GroundStationCardState extends State<GroundStationCard> {
                               ? Icons.flip_camera_android_rounded
                               : Icons.stop_rounded)
                           : Icons.travel_explore_rounded,
-                      color: ThemeColors.primaryColor,
+                      color: widget.disabled
+                          ? Colors.grey
+                          : ThemeColors.primaryColor,
                     ),
                     label: Text(
                       widget.selected
                           ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
                           : 'VIEW IN GALAXY',
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: widget.disabled ? Colors.grey : Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14),
                     ),
                     onPressed: () {
+                      if (widget.disabled) {
+                        return;
+                      }
+
                       if (widget.selected) {
                         widget.onOrbit(!_orbiting);
 

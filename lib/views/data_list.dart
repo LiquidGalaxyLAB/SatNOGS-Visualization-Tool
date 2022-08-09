@@ -14,6 +14,7 @@ class DataList extends StatelessWidget {
     this.onStationOrbit,
     this.onSatelliteView,
     this.onStationView,
+    this.disabled,
   }) : super(key: key);
 
   final List<dynamic> items;
@@ -22,6 +23,7 @@ class DataList extends StatelessWidget {
 
   final Function(bool)? onSatelliteOrbit;
   final Function(bool)? onStationOrbit;
+  final bool? disabled;
 
   final Function(SatelliteEntity)? onSatelliteView;
   final Function(GroundStationEntity)? onStationView;
@@ -41,6 +43,7 @@ class DataList extends StatelessWidget {
               ? SatelliteCard(
                   satellite: items[index],
                   selected: items[index].id == selected['satellite'],
+                  disabled: disabled ?? false,
                   onOrbit: (value) {
                     onSatelliteOrbit!(value);
                   },
@@ -53,6 +56,7 @@ class DataList extends StatelessWidget {
               : GroundStationCard(
                   groundStation: items[index],
                   selected: items[index].id == selected['station'],
+                  disabled: disabled ?? false,
                   onOrbit: (value) {
                     onStationOrbit!(value);
                   },
