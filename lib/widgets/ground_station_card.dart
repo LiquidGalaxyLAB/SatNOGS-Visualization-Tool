@@ -10,6 +10,7 @@ class GroundStationCard extends StatefulWidget {
     required this.groundStation,
     required this.selected,
     required this.onOrbit,
+    required this.onBalloonToggle,
     required this.onView,
     required this.disabled,
   }) : super(key: key);
@@ -19,6 +20,7 @@ class GroundStationCard extends StatefulWidget {
   final GroundStationEntity groundStation;
 
   final Function(bool) onOrbit;
+  final Function(bool) onBalloonToggle;
   final Function(GroundStationEntity) onView;
 
   @override
@@ -27,6 +29,7 @@ class GroundStationCard extends StatefulWidget {
 
 class _GroundStationCardState extends State<GroundStationCard> {
   bool _orbiting = false;
+  bool _balloonVisible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +74,7 @@ class _GroundStationCardState extends State<GroundStationCard> {
                         ))
                   ]),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.only(top: 16, bottom: 4),
                 child: Column(
                   children: [
                     Row(
@@ -95,9 +98,10 @@ class _GroundStationCardState extends State<GroundStationCard> {
                   Text(
                     widget.groundStation.id.toString(),
                     style: TextStyle(
-                        color: ThemeColors.primaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
+                      color: ThemeColors.primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                   TextButton.icon(
                     style: TextButton.styleFrom(
@@ -121,9 +125,10 @@ class _GroundStationCardState extends State<GroundStationCard> {
                           ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
                           : 'VIEW IN GALAXY',
                       style: TextStyle(
-                          color: widget.disabled ? Colors.grey : Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14),
+                        color: widget.disabled ? Colors.grey : Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                     onPressed: () {
                       if (widget.disabled) {
@@ -144,7 +149,39 @@ class _GroundStationCardState extends State<GroundStationCard> {
                     },
                   )
                 ],
-              )
+              ),
+              widget.selected
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Balloon visibility',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Switch(
+                          value: _balloonVisible,
+                          activeColor: ThemeColors.primaryColor,
+                          activeTrackColor:
+                              ThemeColors.primaryColor.withOpacity(0.6),
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey.withOpacity(0.6),
+                          onChanged: widget.disabled
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    _balloonVisible = value;
+                                  });
+
+                                  widget.onBalloonToggle(value);
+                                },
+                        )
+                      ],
+                    )
+                  : Container(),
             ],
           ),
         ));

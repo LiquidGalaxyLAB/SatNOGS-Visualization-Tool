@@ -11,6 +11,7 @@ class SatelliteCard extends StatefulWidget {
     required this.satellite,
     required this.selected,
     required this.onOrbit,
+    required this.onBalloonToggle,
     required this.onView,
     required this.disabled,
   }) : super(key: key);
@@ -18,7 +19,9 @@ class SatelliteCard extends StatefulWidget {
   final bool selected;
   final bool disabled;
   final SatelliteEntity satellite;
+
   final Function(bool) onOrbit;
+  final Function(bool) onBalloonToggle;
   final Function(SatelliteEntity) onView;
 
   @override
@@ -27,6 +30,7 @@ class SatelliteCard extends StatefulWidget {
 
 class _SatelliteCardState extends State<SatelliteCard> {
   bool _orbiting = false;
+  bool _balloonVisible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +98,10 @@ class _SatelliteCardState extends State<SatelliteCard> {
                 ],
               ),
               Padding(
-                padding:
-                    EdgeInsets.symmetric(vertical: satelliteHasDate ? 16 : 0),
+                padding: EdgeInsets.only(
+                  top: satelliteHasDate ? 16 : 0,
+                  bottom: satelliteHasDate ? 4 : 0,
+                ),
                 child: Column(
                   children: [
                     widget.satellite.launched.isNotEmpty
@@ -125,68 +131,98 @@ class _SatelliteCardState extends State<SatelliteCard> {
                   ],
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.only(top: satelliteHasDate ? 0 : 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      widget.satellite.noradId != null
-                          ? widget.satellite.noradId.toString()
-                          : '-',
-                      style: TextStyle(
-                          color: ThemeColors.primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.satellite.noradId != null
+                        ? widget.satellite.noradId.toString()
+                        : '-',
+                    style: TextStyle(
+                      color: ThemeColors.primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.all(0),
-                        tapTargetSize: MaterialTapTargetSize.padded,
-                        alignment: Alignment.centerRight,
-                        minimumSize: const Size(120, 24),
+                  ),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.all(0),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                      alignment: Alignment.centerRight,
+                      minimumSize: const Size(120, 24),
+                    ),
+                    icon: Icon(
+                      widget.selected
+                          ? (!_orbiting
+                              ? Icons.flip_camera_android_rounded
+                              : Icons.stop_rounded)
+                          : Icons.travel_explore_rounded,
+                      color: widget.disabled
+                          ? Colors.grey
+                          : ThemeColors.primaryColor,
+                    ),
+                    label: Text(
+                      widget.selected
+                          ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
+                          : 'VIEW IN GALAXY',
+                      style: TextStyle(
+                        color: widget.disabled ? Colors.grey : Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
-                      icon: Icon(
-                        widget.selected
-                            ? (!_orbiting
-                                ? Icons.flip_camera_android_rounded
-                                : Icons.stop_rounded)
-                            : Icons.travel_explore_rounded,
-                        color: widget.disabled
-                            ? Colors.grey
-                            : ThemeColors.primaryColor,
-                      ),
-                      label: Text(
-                        widget.selected
-                            ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
-                            : 'VIEW IN GALAXY',
-                        style: TextStyle(
-                          color: widget.disabled ? Colors.grey : Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                    ),
+                    onPressed: () {
+                      if (widget.disabled) {
+                        return;
+                      }
+
+                      if (widget.selected) {
+                        widget.onOrbit(!_orbiting);
+
+                        setState(() {
+                          _orbiting = !_orbiting;
+                        });
+
+                        return;
+                      }
+
+                      widget.onView(widget.satellite);
+                    },
+                  )
+                ],
+              ),
+              widget.selected
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Balloon visibility',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      onPressed: () {
-                        if (widget.disabled) {
-                          return;
-                        }
+                        Switch(
+                          value: _balloonVisible,
+                          activeColor: ThemeColors.primaryColor,
+                          activeTrackColor:
+                              ThemeColors.primaryColor.withOpacity(0.6),
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey.withOpacity(0.6),
+                          onChanged: widget.disabled
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    _balloonVisible = value;
+                                  });
 
-                        if (widget.selected) {
-                          widget.onOrbit(!_orbiting);
-
-                          setState(() {
-                            _orbiting = !_orbiting;
-                          });
-
-                          return;
-                        }
-
-                        widget.onView(widget.satellite);
-                      },
+                                  widget.onBalloonToggle(value);
+                                },
+                        )
+                      ],
                     )
-                  ],
-                ),
-              )
+                  : Container(),
             ],
           ),
         ));
