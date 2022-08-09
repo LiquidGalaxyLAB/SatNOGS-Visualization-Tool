@@ -98,6 +98,7 @@ class GroundStationService {
     GroundStationEntity station,
     bool balloon, {
     Map<String, dynamic>? extraData,
+    bool updatePosition = true,
   }) {
     final lookAt = LookAtEntity(
       lng: station.lng,
@@ -116,7 +117,7 @@ class GroundStationService {
     final placemark = PlacemarkEntity(
       id: station.id.toString(),
       name: '${station.name} (${station.getStatusLabel().toUpperCase()})',
-      lookAt: lookAt,
+      lookAt: updatePosition ? lookAt : null,
       point: point,
       description: '',
       balloonContent:
