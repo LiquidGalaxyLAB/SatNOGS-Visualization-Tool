@@ -138,7 +138,7 @@ class SatelliteEntity {
   /// Gets the orbit coordinates from the current satellite.
   ///
   /// Returns a [List] of coordinates with [lat], [lng] and [alt].
-  List<Map<String, double>> getOrbitCoordinates() {
+  List<Map<String, double>> getOrbitCoordinates({double step = 2.8}) {
     if (tle == null) {
       return [];
     }
@@ -149,7 +149,7 @@ class SatelliteEntity {
     double spot = 0;
 
     while (spot < 361) {
-      displacement += 2.8 / 361;
+      displacement += step / 361;
       final tleCoords = tle!.read(displacement: displacement / 24.0);
       coords.add({
         'lat': tleCoords['lat']!,
