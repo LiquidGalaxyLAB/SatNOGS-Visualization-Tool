@@ -11,6 +11,7 @@ class DataList extends StatelessWidget {
     required this.render,
     required this.selected,
     this.onSatelliteOrbit,
+    this.onSatelliteOrbitPeriodChange,
     this.onSatelliteBalloonToggle,
     this.onStationBalloonToggle,
     this.onSatelliteView,
@@ -26,6 +27,7 @@ class DataList extends StatelessWidget {
   final Function(bool)? onSatelliteOrbit;
   final Function(SatelliteEntity, bool)? onSatelliteBalloonToggle;
   final Function(SatelliteEntity)? onSatelliteView;
+  final Function(SatelliteEntity, double)? onSatelliteOrbitPeriodChange;
   final bool? disabled;
 
   final Function(bool)? onStationOrbit;
@@ -48,6 +50,9 @@ class DataList extends StatelessWidget {
                   satellite: items[index],
                   selected: items[index].id == selected['satellite'],
                   disabled: disabled ?? false,
+                  onOrbitPeriodChange: (value) {
+                    onSatelliteOrbitPeriodChange!(items[index], value);
+                  },
                   onBalloonToggle: (value) {
                     onSatelliteBalloonToggle!(items[index], value);
                   },
@@ -55,9 +60,7 @@ class DataList extends StatelessWidget {
                     onSatelliteOrbit!(value);
                   },
                   onView: (satellite) {
-                    if (onSatelliteView != null) {
-                      onSatelliteView!(satellite);
-                    }
+                    onSatelliteView!(satellite);
                   },
                 )
               : GroundStationCard(
@@ -71,9 +74,7 @@ class DataList extends StatelessWidget {
                     onStationOrbit!(value);
                   },
                   onView: (station) {
-                    if (onStationView != null) {
-                      onStationView!(station);
-                    }
+                    onStationView!(station);
                   },
                 ),
         );

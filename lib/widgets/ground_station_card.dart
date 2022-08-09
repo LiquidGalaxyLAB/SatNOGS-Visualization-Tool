@@ -146,6 +146,11 @@ class _GroundStationCardState extends State<GroundStationCard> {
                       }
 
                       widget.onView(widget.groundStation);
+
+                      setState(() {
+                        _orbiting = false;
+                        _balloonVisible = true;
+                      });
                     },
                   )
                 ],
