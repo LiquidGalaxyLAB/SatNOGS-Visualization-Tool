@@ -12,6 +12,7 @@ class SatelliteCard extends StatefulWidget {
     required this.selected,
     required this.onOrbit,
     required this.onBalloonToggle,
+    required this.onOrbitPeriodChange,
     required this.onView,
     required this.disabled,
   }) : super(key: key);
@@ -23,6 +24,7 @@ class SatelliteCard extends StatefulWidget {
   final Function(bool) onOrbit;
   final Function(bool) onBalloonToggle;
   final Function(SatelliteEntity) onView;
+  final Function(double) onOrbitPeriodChange;
 
   @override
   State<SatelliteCard> createState() => _SatelliteCardState();
@@ -31,6 +33,8 @@ class SatelliteCard extends StatefulWidget {
 class _SatelliteCardState extends State<SatelliteCard> {
   bool _orbiting = false;
   bool _balloonVisible = true;
+
+  double _orbitPeriod = 2.8;
 
   @override
   Widget build(BuildContext context) {
@@ -49,51 +53,57 @@ class _SatelliteCardState extends State<SatelliteCard> {
             border: Border.all(color: ThemeColors.cardBorder),
             borderRadius: BorderRadius.circular(10)),
         child: Padding(
-          padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+          padding: const EdgeInsets.only(top: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Flexible(
-                            child: Text(
-                          widget.satellite.name,
-                          style: const TextStyle(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Flexible(
+                              child: Text(
+                            widget.satellite.name,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
-                              fontSize: 20),
-                        )),
-                        Text(widget.satellite.getStatusLabel().toUpperCase(),
-                            style: TextStyle(
-                              color: widget.satellite.status ==
-                                      SatelliteStatusEnum.ALIVE
-                                  ? ThemeColors.success
-                                  : widget.satellite.status ==
-                                          SatelliteStatusEnum.DEAD
-                                      ? ThemeColors.alert
-                                      : widget.satellite.status ==
-                                              SatelliteStatusEnum.FUTURE
-                                          ? ThemeColors.info
-                                          : ThemeColors.warning,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ))
-                      ]),
+                              fontSize: 20,
+                            ),
+                          )),
+                          Text(widget.satellite.getStatusLabel().toUpperCase(),
+                              style: TextStyle(
+                                color: widget.satellite.status ==
+                                        SatelliteStatusEnum.ALIVE
+                                    ? ThemeColors.success
+                                    : widget.satellite.status ==
+                                            SatelliteStatusEnum.DEAD
+                                        ? ThemeColors.alert
+                                        : widget.satellite.status ==
+                                                SatelliteStatusEnum.FUTURE
+                                            ? ThemeColors.info
+                                            : ThemeColors.warning,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ))
+                        ]),
+                  ),
                   widget.satellite.altNames.isNotEmpty
-                      ? Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                  widget.satellite.altNames
-                                      .replaceAll('\r\n', ' | '),
-                                  style: const TextStyle(color: Colors.grey)),
-                            )
-                          ],
-                        )
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                    widget.satellite.altNames
+                                        .replaceAll('\r\n', ' | '),
+                                    style: const TextStyle(color: Colors.grey)),
+                              )
+                            ],
+                          ))
                       : Container(),
                 ],
               ),
@@ -101,6 +111,8 @@ class _SatelliteCardState extends State<SatelliteCard> {
                 padding: EdgeInsets.only(
                   top: satelliteHasDate ? 16 : 0,
                   bottom: satelliteHasDate ? 4 : 0,
+                  left: 16,
+                  right: 16,
                 ),
                 child: Column(
                   children: [
@@ -131,98 +143,163 @@ class _SatelliteCardState extends State<SatelliteCard> {
                   ],
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.satellite.noradId != null
-                        ? widget.satellite.noradId.toString()
-                        : '-',
-                    style: TextStyle(
-                      color: ThemeColors.primaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.all(0),
-                      tapTargetSize: MaterialTapTargetSize.padded,
-                      alignment: Alignment.centerRight,
-                      minimumSize: const Size(120, 24),
-                    ),
-                    icon: Icon(
-                      widget.selected
-                          ? (!_orbiting
-                              ? Icons.flip_camera_android_rounded
-                              : Icons.stop_rounded)
-                          : Icons.travel_explore_rounded,
-                      color: widget.disabled
-                          ? Colors.grey
-                          : ThemeColors.primaryColor,
-                    ),
-                    label: Text(
-                      widget.selected
-                          ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
-                          : 'VIEW IN GALAXY',
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.satellite.noradId != null
+                          ? widget.satellite.noradId.toString()
+                          : '-',
                       style: TextStyle(
-                        color: widget.disabled ? Colors.grey : Colors.white,
+                        color: ThemeColors.primaryColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 18,
                       ),
                     ),
-                    onPressed: () {
-                      if (widget.disabled) {
-                        return;
-                      }
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.all(0),
+                        tapTargetSize: MaterialTapTargetSize.padded,
+                        alignment: Alignment.centerRight,
+                        minimumSize: const Size(120, 24),
+                      ),
+                      icon: Icon(
+                        widget.selected
+                            ? (!_orbiting
+                                ? Icons.flip_camera_android_rounded
+                                : Icons.stop_rounded)
+                            : Icons.travel_explore_rounded,
+                        color: widget.disabled
+                            ? Colors.grey
+                            : ThemeColors.primaryColor,
+                      ),
+                      label: Text(
+                        widget.selected
+                            ? (_orbiting ? 'STOP ORBIT' : 'ORBIT')
+                            : 'VIEW IN GALAXY',
+                        style: TextStyle(
+                          color: widget.disabled ? Colors.grey : Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      onPressed: () async {
+                        if (widget.disabled) {
+                          return;
+                        }
 
-                      if (widget.selected) {
-                        widget.onOrbit(!_orbiting);
+                        if (widget.selected) {
+                          widget.onOrbit(!_orbiting);
+
+                          setState(() {
+                            _orbiting = !_orbiting;
+                          });
+
+                          return;
+                        }
+
+                        widget.onView(widget.satellite);
 
                         setState(() {
-                          _orbiting = !_orbiting;
+                          _orbiting = false;
+                          _balloonVisible = true;
+                          _orbitPeriod = 2.8;
                         });
-
-                        return;
-                      }
-
-                      widget.onView(widget.satellite);
-                    },
-                  )
-                ],
+                      },
+                    )
+                  ],
+                ),
               ),
-              widget.selected
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Balloon visibility',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+              !widget.selected
+                  ? Container()
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Balloon visibility',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        Switch(
-                          value: _balloonVisible,
-                          activeColor: ThemeColors.primaryColor,
-                          activeTrackColor:
-                              ThemeColors.primaryColor.withOpacity(0.6),
-                          inactiveThumbColor: Colors.grey,
-                          inactiveTrackColor: Colors.grey.withOpacity(0.6),
-                          onChanged: widget.disabled
-                              ? null
-                              : (value) {
+                          Switch(
+                            value: _balloonVisible,
+                            activeColor: ThemeColors.primaryColor,
+                            activeTrackColor:
+                                ThemeColors.primaryColor.withOpacity(0.6),
+                            inactiveThumbColor: Colors.grey,
+                            inactiveTrackColor: Colors.grey.withOpacity(0.6),
+                            onChanged: widget.disabled
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      _balloonVisible = value;
+                                    });
+
+                                    widget.onBalloonToggle(value);
+                                  },
+                          )
+                        ],
+                      )),
+              !widget.selected
+                  ? Container()
+                  : Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Orbit period (h)',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Flexible(
+                            flex: 1,
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                disabledActiveTrackColor: Colors.grey,
+                                disabledThumbColor: Colors.grey.shade400,
+                                disabledInactiveTrackColor:
+                                    Colors.grey.withOpacity(0.5),
+                              ),
+                              child: Slider(
+                                value: _orbitPeriod,
+                                min: 1,
+                                max: 10,
+                                divisions: 100,
+                                activeColor:
+                                    ThemeColors.primaryColor.withOpacity(0.8),
+                                thumbColor: ThemeColors.primaryColor,
+                                inactiveColor: Colors.grey.withOpacity(0.8),
+                                label: _orbitPeriod.toStringAsFixed(1),
+                                onChanged: widget.disabled
+                                    ? null
+                                    : (value) {
+                                        setState(() {
+                                          _orbitPeriod = value;
+                                        });
+                                      },
+                                onChangeEnd: (value) {
                                   setState(() {
-                                    _balloonVisible = value;
+                                    _orbitPeriod = value;
                                   });
 
-                                  widget.onBalloonToggle(value);
+                                  widget.onOrbitPeriodChange(value);
                                 },
-                        )
-                      ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
                     )
-                  : Container(),
             ],
           ),
         ));
