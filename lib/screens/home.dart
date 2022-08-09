@@ -15,9 +15,11 @@ import 'package:satnogs_visualization_tool/screens/settings.dart';
 import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
 import 'package:satnogs_visualization_tool/services/lg_service.dart';
 import 'package:satnogs_visualization_tool/services/satellite_service.dart';
+import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/services/tle_service.dart';
 import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
+import 'package:satnogs_visualization_tool/utils/snackbar.dart';
 import 'package:satnogs_visualization_tool/views/data_list.dart';
 import 'package:satnogs_visualization_tool/widgets/data_amount.dart';
 import 'package:satnogs_visualization_tool/widgets/error_dialog.dart';
@@ -35,6 +37,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  SSHService get _sshService => GetIt.I<SSHService>();
   LGService get _lgService => GetIt.I<LGService>();
   SatelliteService get _satelliteService => GetIt.I<SatelliteService>();
   TLEService get _tleService => GetIt.I<TLEService>();
@@ -63,6 +66,7 @@ class _HomePageState extends State<HomePage> {
   bool _loadingTransmitters = false;
   bool _loadingStations = false;
   bool _uploading = false;
+  bool _cleaning = false;
 
   String? _selectedSatellite;
   int? _selectedStation;
@@ -330,60 +334,90 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    print('view in galaxy: ${satellite.name}');
-
-    setState(() {
-      _uploading = true;
-    });
-
-    final matchTLEs =
-        _tles.where((element) => element.satelliteId == satellite.id);
-    TLEEntity? tle = matchTLEs.isNotEmpty ? matchTLEs.toList()[0] : null;
-
-    if (tle == null) {
+    try {
       setState(() {
-        _uploading = false;
-        _selectedSatellite = null;
+        _uploading = true;
+      });
+
+      final timer = Timer(const Duration(seconds: 5), () {
+        setState(() {
+          _selectedSatellite = null;
+          _selectedStation = null;
+          _uploading = false;
+        });
+
+        throw Exception('connection-timed-out');
+      });
+
+      final result = await _sshService.connect();
+      timer.cancel();
+
+      if (result != 'session_connected') {
+        setState(() {
+          _uploading = false;
+        });
+
+        return showSnackbar(context, 'Connection failed');
+      }
+
+      final matchTLEs =
+          _tles.where((element) => element.satelliteId == satellite.id);
+      TLEEntity? tle = matchTLEs.isNotEmpty ? matchTLEs.toList()[0] : null;
+
+      if (tle == null) {
+        setState(() {
+          _uploading = false;
+          _selectedSatellite = null;
+          _selectedStation = null;
+        });
+
+        return _showErrorDialog('No TLE available for this satellite!');
+      }
+
+      setState(() {
+        _selectedSatellite = satellite.id;
         _selectedStation = null;
       });
 
-      return _showErrorDialog('No TLE available for this satellite!');
+      final tleCoord = tle.read();
+
+      final transmitters = _transmitters
+          .where((element) => element.satelliteId == satellite.id)
+          .toList();
+
+      final kml = _satelliteService.buildKml(satellite, tle, transmitters);
+      // await _lgService.sendMasterKml(kml);
+
+      await _lgService.sendKml(
+        kml,
+        images: [
+          {
+            'name': 'satellite.png',
+            'path': 'assets/images/satellite.png',
+          }
+        ],
+      );
+
+      await _lgService.flyTo(LookAtEntity(
+        lat: tleCoord['lat']!,
+        lng: tleCoord['lng']!,
+        altitude: tleCoord['alt']! * 1,
+        range: '400000',
+        tilt: '60',
+        heading: '0',
+      ));
+
+      final orbit = _satelliteService.buildOrbit(satellite, tle);
+      await _lgService.sendTour(orbit, 'Orbit');
+    } on Exception catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } finally {
+      setState(() {
+        _uploading = false;
+      });
     }
-
-    final tleCoord = tle.read();
-
-    final transmitters = _transmitters
-        .where((element) => element.satelliteId == satellite.id)
-        .toList();
-
-    final kml = _satelliteService.buildKml(satellite, tle, transmitters);
-    // await _lgService.sendMasterKml(kml);
-
-    await _lgService.sendKml(
-      kml,
-      images: [
-        {
-          'name': 'satellite.png',
-          'path': 'assets/images/satellite.png',
-        }
-      ],
-    );
-
-    await _lgService.flyTo(LookAtEntity(
-      lat: tleCoord['lat']!,
-      lng: tleCoord['lng']!,
-      altitude: tleCoord['alt']! * 1,
-      range: '400000',
-      tilt: '60',
-      heading: '0',
-    ));
-
-    final orbit = _satelliteService.buildOrbit(satellite, tle);
-    await _lgService.sendTour(orbit, 'Orbit');
-
-    setState(() {
-      _uploading = false;
-    });
   }
 
   /// Views a `ground station` into the Google Earth.
@@ -392,43 +426,111 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    print('view in galaxy: ${station.name}');
+    try {
+      setState(() {
+        _uploading = true;
+      });
 
-    Map<String, dynamic>? extraData;
+      final timer = Timer(const Duration(seconds: 5), () {
+        setState(() {
+          _selectedSatellite = null;
+          _selectedStation = null;
+          _uploading = false;
+        });
 
-    if (_online) {
-      extraData = await _groundStationService.getOne(station.id);
+        throw Exception('connection-timed-out');
+      });
+
+      final result = await _sshService.connect();
+      timer.cancel();
+
+      if (result != 'session_connected') {
+        setState(() {
+          _uploading = false;
+        });
+
+        return showSnackbar(context, 'Connection failed');
+      }
+
+      Map<String, dynamic>? extraData;
+
+      if (_online) {
+        extraData = await _groundStationService.getOne(station.id);
+      }
+
+      setState(() {
+        _selectedSatellite = null;
+        _selectedStation = station.id;
+      });
+
+      final kml = _groundStationService.buildKml(station, extraData: extraData);
+      await _lgService.sendKml(
+        kml,
+        images: [
+          {
+            'name': 'station.png',
+            'path': 'assets/images/station.png',
+          }
+        ],
+      );
+
+      await _lgService.flyTo(LookAtEntity(
+        lat: station.lat,
+        lng: station.lng,
+        range: '1500',
+        tilt: '60',
+        heading: '0',
+      ));
+
+      final orbit = _groundStationService.buildOrbit(station);
+      await _lgService.sendTour(orbit, 'Orbit');
+    } on Exception catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } finally {
+      setState(() {
+        _uploading = false;
+      });
     }
+  }
 
-    setState(() {
-      _uploading = true;
-    });
+  void _clearKml() async {
+    try {
+      setState(() {
+        _cleaning = true;
+      });
 
-    final kml = _groundStationService.buildKml(station, extraData: extraData);
-    await _lgService.sendKml(
-      kml,
-      images: [
-        {
-          'name': 'station.png',
-          'path': 'assets/images/station.png',
-        }
-      ],
-    );
+      final timer = Timer(const Duration(seconds: 5), () {
+        setState(() {
+          _cleaning = false;
+        });
 
-    await _lgService.flyTo(LookAtEntity(
-      lat: station.lat,
-      lng: station.lng,
-      range: '1500',
-      tilt: '60',
-      heading: '0',
-    ));
+        throw Exception('connection-timed-out');
+      });
 
-    final orbit = _groundStationService.buildOrbit(station);
-    await _lgService.sendTour(orbit, 'Orbit');
+      final result = await _sshService.connect();
+      timer.cancel();
 
-    setState(() {
-      _uploading = false;
-    });
+      if (result != 'session_connected') {
+        return showSnackbar(context, 'Connection failed');
+      }
+
+      setState(() {
+        _selectedSatellite = null;
+        _selectedStation = null;
+      });
+
+      _lgService.clearKml();
+    } on Exception catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } finally {
+      setState(() {
+        _cleaning = false;
+      });
+    }
   }
 
   @override
@@ -444,16 +546,13 @@ class _HomePageState extends State<HomePage> {
           TextButton.icon(
             icon:
                 const Icon(Icons.cleaning_services_rounded, color: Colors.grey),
-            label: const Text("CLEAR",
-                style:
-                    TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+            label: Text(_cleaning ? 'CLEANING' : 'CLEAR',
+                style: TextStyle(
+                  color: _cleaning ? Colors.grey.withOpacity(0.8) : Colors.grey,
+                  fontWeight: FontWeight.w600,
+                )),
             onPressed: () {
-              setState(() {
-                _selectedSatellite = null;
-                _selectedStation = null;
-              });
-
-              _lgService.clearKml();
+              _clearKml();
             },
           ),
           TextButton.icon(
@@ -561,6 +660,7 @@ class _HomePageState extends State<HomePage> {
                                     items: _filteredSatellites,
                                     render: 'satellite',
                                     selected: {'satellite': _selectedSatellite},
+                                    disabled: _uploading,
                                     onSatelliteOrbit: (value) {
                                       if (value) {
                                         _lgService.startTour('Orbit');
@@ -569,11 +669,6 @@ class _HomePageState extends State<HomePage> {
                                       }
                                     },
                                     onSatelliteView: (satellite) {
-                                      setState(() {
-                                        _selectedSatellite = satellite.id;
-                                        _selectedStation = null;
-                                      });
-
                                       _viewSatellite(satellite);
                                     },
                                   ),
@@ -626,6 +721,7 @@ class _HomePageState extends State<HomePage> {
                                     items: _filteredGroundStations,
                                     render: 'station',
                                     selected: {'station': _selectedStation},
+                                    disabled: _uploading,
                                     onStationOrbit: (value) {
                                       if (value) {
                                         _lgService.startTour('Orbit');
@@ -634,11 +730,6 @@ class _HomePageState extends State<HomePage> {
                                       }
                                     },
                                     onStationView: (station) {
-                                      setState(() {
-                                        _selectedSatellite = null;
-                                        _selectedStation = station.id;
-                                      });
-
                                       _viewGroundStation(station);
                                     },
                                   ),
@@ -650,13 +741,6 @@ class _HomePageState extends State<HomePage> {
           ))
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   tooltip: 'View satellite by NORAD id',
-      //   child: const Icon(Icons.manage_search_rounded, size: 28),
-      //   backgroundColor: ThemeColors.primaryColor,
-      //   foregroundColor: ThemeColors.backgroundColor,
-      //   onPressed: () {},
-      // ),
     );
   }
 
