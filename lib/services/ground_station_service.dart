@@ -95,7 +95,8 @@ class GroundStationService {
   /// Builds and returns a satellite `KML` [String] according to the given
   /// [station].
   KMLEntity buildKml(
-    GroundStationEntity station, {
+    GroundStationEntity station,
+    bool balloon, {
     Map<String, dynamic>? extraData,
   }) {
     final lookAt = LookAtEntity(
@@ -119,21 +120,10 @@ class GroundStationService {
       point: point,
       description: '',
       balloonContent:
-          extraData != null ? station.balloonContent(extraData) : '',
+          extraData != null && balloon ? station.balloonContent(extraData) : '',
       icon: 'station.png',
       line: LineEntity(id: station.id.toString(), coordinates: []),
     );
-
-    // final screenOverlay = ScreenOverlayEntity(
-    //   name: satellite.name,
-    //   icon: 'http://lg1:81/satellite.png',
-    //   overlayX: 1,
-    //   overlayY: 1,
-    //   screenX: 1,
-    //   screenY: 1,
-    //   sizeX: 200,
-    //   sizeY: 300,
-    // );
 
     return KMLEntity(
       name: station.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),

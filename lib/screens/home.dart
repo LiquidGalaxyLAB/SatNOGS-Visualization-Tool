@@ -329,7 +329,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Views a `satellite` into the Google Earth.
-  void _viewSatellite(SatelliteEntity satellite) async {
+  void _viewSatellite(SatelliteEntity satellite, bool showBalloon) async {
     if (_uploading) {
       return;
     }
@@ -385,7 +385,8 @@ class _HomePageState extends State<HomePage> {
           .where((element) => element.satelliteId == satellite.id)
           .toList();
 
-      final kml = _satelliteService.buildKml(satellite, tle, transmitters);
+      final kml =
+          _satelliteService.buildKml(satellite, tle, transmitters, showBalloon);
       // await _lgService.sendMasterKml(kml);
 
       await _lgService.sendKml(
@@ -421,7 +422,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Views a `ground station` into the Google Earth.
-  void _viewGroundStation(GroundStationEntity station) async {
+  void _viewGroundStation(GroundStationEntity station, bool showBalloon) async {
     if (_uploading) {
       return;
     }
@@ -463,7 +464,11 @@ class _HomePageState extends State<HomePage> {
         _selectedStation = station.id;
       });
 
-      final kml = _groundStationService.buildKml(station, extraData: extraData);
+      final kml = _groundStationService.buildKml(
+        station,
+        showBalloon,
+        extraData: extraData,
+      );
       await _lgService.sendKml(
         kml,
         images: [
@@ -661,6 +666,10 @@ class _HomePageState extends State<HomePage> {
                                     render: 'satellite',
                                     selected: {'satellite': _selectedSatellite},
                                     disabled: _uploading,
+                                    onSatelliteBalloonToggle:
+                                        (satellite, value) async {
+                                      _viewSatellite(satellite, value);
+                                    },
                                     onSatelliteOrbit: (value) {
                                       if (value) {
                                         _lgService.startTour('Orbit');
@@ -669,7 +678,7 @@ class _HomePageState extends State<HomePage> {
                                       }
                                     },
                                     onSatelliteView: (satellite) {
-                                      _viewSatellite(satellite);
+                                      _viewSatellite(satellite, true);
                                     },
                                   ),
                           ))
@@ -722,6 +731,10 @@ class _HomePageState extends State<HomePage> {
                                     render: 'station',
                                     selected: {'station': _selectedStation},
                                     disabled: _uploading,
+                                    onStationBalloonToggle:
+                                        (station, value) async {
+                                      _viewGroundStation(station, value);
+                                    },
                                     onStationOrbit: (value) {
                                       if (value) {
                                         _lgService.startTour('Orbit');
@@ -730,7 +743,7 @@ class _HomePageState extends State<HomePage> {
                                       }
                                     },
                                     onStationView: (station) {
-                                      _viewGroundStation(station);
+                                      _viewGroundStation(station, true);
                                     },
                                   ),
                           ))

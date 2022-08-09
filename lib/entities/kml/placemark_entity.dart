@@ -97,7 +97,7 @@ class PlacemarkEntity {
       ${lookAt.tag}
       <styleUrl>$id</styleUrl>
       ${point.tag}
-      <gx:balloonVisibility>1</gx:balloonVisibility>
+      <gx:balloonVisibility>${balloonContent.isEmpty ? 0 : 1}</gx:balloonVisibility>
     </Placemark>
     <Placemark>
       <name>Orbit - $name</name>

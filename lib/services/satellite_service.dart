@@ -68,6 +68,7 @@ class SatelliteService {
     SatelliteEntity satellite,
     TLEEntity tle,
     List<TransmitterEntity> transmitters,
+    bool balloon,
   ) {
     final coord = tle.read();
 
@@ -94,7 +95,8 @@ class SatelliteService {
       lookAt: lookAt,
       point: point,
       description: satellite.citation,
-      balloonContent: satellite.balloonContent(transmitters.length),
+      balloonContent:
+          balloon ? satellite.balloonContent(transmitters.length) : '',
       icon: 'satellite.png',
       line: LineEntity(
         id: satellite.id,
@@ -103,21 +105,9 @@ class SatelliteService {
       ),
     );
 
-    // final screenOverlay = ScreenOverlayEntity(
-    //   name: satellite.name,
-    //   icon: 'http://lg1:81/satellite.png',
-    //   overlayX: 1,
-    //   overlayY: 1,
-    //   screenX: 1,
-    //   screenY: 1,
-    //   sizeX: 200,
-    //   sizeY: 300,
-    // );
-
     return KMLEntity(
       name: satellite.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
       content: placemark.tag,
-      // screenOverlay: screenOverlay.tag,
     );
   }
 
