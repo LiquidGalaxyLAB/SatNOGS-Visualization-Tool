@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/placemark_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
 import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
@@ -67,9 +69,11 @@ class _HomePageState extends State<HomePage> {
   bool _loadingStations = false;
   bool _uploading = false;
   bool _cleaning = false;
+  bool _satelliteBalloonVisible = true;
 
   String? _selectedSatellite;
   int? _selectedStation;
+  PlacemarkEntity? _satellitePlacemark;
 
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -329,7 +333,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Views a `satellite` into the Google Earth.
-  void _viewSatellite(SatelliteEntity satellite, bool showBalloon) async {
+  void _viewSatellite(SatelliteEntity satellite, bool showBalloon,
+      {double orbitPeriod = 2.8, bool updatePosition = true}) async {
     if (_uploading) {
       return;
     }
@@ -341,7 +346,9 @@ class _HomePageState extends State<HomePage> {
 
       final timer = Timer(const Duration(seconds: 5), () {
         setState(() {
+          _satelliteBalloonVisible = true;
           _selectedSatellite = null;
+          _satellitePlacemark = null;
           _selectedStation = null;
           _uploading = false;
         });
@@ -367,7 +374,10 @@ class _HomePageState extends State<HomePage> {
       if (tle == null) {
         setState(() {
           _uploading = false;
+          _satelliteBalloonVisible = true;
+          _satellitePlacemark = null;
           _selectedSatellite = null;
+          _satelliteBalloonVisible = true;
           _selectedStation = null;
         });
 
@@ -385,8 +395,26 @@ class _HomePageState extends State<HomePage> {
           .where((element) => element.satelliteId == satellite.id)
           .toList();
 
-      final kml =
-          _satelliteService.buildKml(satellite, tle, transmitters, showBalloon);
+      final placemark = _satelliteService.buildPlacemark(
+        satellite,
+        tle,
+        transmitters,
+        showBalloon,
+        orbitPeriod,
+        lookAt: _satellitePlacemark != null && !updatePosition
+            ? _satellitePlacemark!.lookAt
+            : null,
+        updatePosition: updatePosition,
+      );
+
+      setState(() {
+        _satellitePlacemark = placemark;
+      });
+
+      final kml = KMLEntity(
+        name: satellite.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
+        content: placemark.tag,
+      );
       // await _lgService.sendMasterKml(kml);
 
       await _lgService.sendKml(
@@ -399,14 +427,16 @@ class _HomePageState extends State<HomePage> {
         ],
       );
 
-      await _lgService.flyTo(LookAtEntity(
-        lat: tleCoord['lat']!,
-        lng: tleCoord['lng']!,
-        altitude: tleCoord['alt']! * 1,
-        range: '400000',
-        tilt: '60',
-        heading: '0',
-      ));
+      if (updatePosition) {
+        await _lgService.flyTo(LookAtEntity(
+          lat: tleCoord['lat']!,
+          lng: tleCoord['lng']!,
+          altitude: tleCoord['alt']!,
+          range: '400000',
+          tilt: '60',
+          heading: '0',
+        ));
+      }
 
       final orbit = _satelliteService.buildOrbit(satellite, tle);
       await _lgService.sendTour(orbit, 'Orbit');
@@ -422,7 +452,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Views a `ground station` into the Google Earth.
-  void _viewGroundStation(GroundStationEntity station, bool showBalloon) async {
+  void _viewGroundStation(GroundStationEntity station, bool showBalloon,
+      {bool updatePosition = true}) async {
     if (_uploading) {
       return;
     }
@@ -435,8 +466,11 @@ class _HomePageState extends State<HomePage> {
       final timer = Timer(const Duration(seconds: 5), () {
         setState(() {
           _selectedSatellite = null;
+          _satellitePlacemark = null;
+          _satelliteBalloonVisible = true;
           _selectedStation = null;
           _uploading = false;
+          _satelliteBalloonVisible = true;
         });
 
         throw Exception('connection-timed-out');
@@ -461,6 +495,8 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         _selectedSatellite = null;
+        _satellitePlacemark = null;
+        _satelliteBalloonVisible = true;
         _selectedStation = station.id;
       });
 
@@ -468,6 +504,7 @@ class _HomePageState extends State<HomePage> {
         station,
         showBalloon,
         extraData: extraData,
+        updatePosition: updatePosition,
       );
       await _lgService.sendKml(
         kml,
@@ -479,13 +516,15 @@ class _HomePageState extends State<HomePage> {
         ],
       );
 
-      await _lgService.flyTo(LookAtEntity(
-        lat: station.lat,
-        lng: station.lng,
-        range: '1500',
-        tilt: '60',
-        heading: '0',
-      ));
+      if (updatePosition) {
+        await _lgService.flyTo(LookAtEntity(
+          lat: station.lat,
+          lng: station.lng,
+          range: '1500',
+          tilt: '60',
+          heading: '0',
+        ));
+      }
 
       final orbit = _groundStationService.buildOrbit(station);
       await _lgService.sendTour(orbit, 'Orbit');
@@ -522,11 +561,13 @@ class _HomePageState extends State<HomePage> {
       }
 
       setState(() {
+        _satelliteBalloonVisible = true;
         _selectedSatellite = null;
+        _satellitePlacemark = null;
         _selectedStation = null;
       });
 
-      _lgService.clearKml();
+      await _lgService.clearKml();
     } on Exception catch (_) {
       showSnackbar(context, 'Connection failed');
     } catch (_) {
@@ -595,9 +636,10 @@ class _HomePageState extends State<HomePage> {
                   splashRadius: 24,
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SettingsPage()));
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsPage()),
+                    );
                   }))
         ],
       ),
@@ -666,9 +708,25 @@ class _HomePageState extends State<HomePage> {
                                     render: 'satellite',
                                     selected: {'satellite': _selectedSatellite},
                                     disabled: _uploading,
+                                    onSatelliteOrbitPeriodChange:
+                                        (satellite, value) {
+                                      _viewSatellite(
+                                        satellite,
+                                        _satelliteBalloonVisible,
+                                        orbitPeriod: value,
+                                        updatePosition: false,
+                                      );
+                                    },
                                     onSatelliteBalloonToggle:
-                                        (satellite, value) async {
-                                      _viewSatellite(satellite, value);
+                                        (satellite, value) {
+                                      setState(() {
+                                        _satelliteBalloonVisible = value;
+                                      });
+                                      _viewSatellite(
+                                        satellite,
+                                        value,
+                                        updatePosition: false,
+                                      );
                                     },
                                     onSatelliteOrbit: (value) {
                                       if (value) {
@@ -733,7 +791,11 @@ class _HomePageState extends State<HomePage> {
                                     disabled: _uploading,
                                     onStationBalloonToggle:
                                         (station, value) async {
-                                      _viewGroundStation(station, value);
+                                      _viewGroundStation(
+                                        station,
+                                        value,
+                                        updatePosition: false,
+                                      );
                                     },
                                     onStationOrbit: (value) {
                                       if (value) {
