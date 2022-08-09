@@ -21,7 +21,7 @@ class PlacemarkEntity {
   String balloonContent;
 
   /// Property that defines the placemark `look at` entity.
-  LookAtEntity lookAt;
+  LookAtEntity? lookAt;
 
   /// Property that defines the placemark `point` entity.
   PointEntity point;
@@ -94,7 +94,7 @@ class PlacemarkEntity {
     <Placemark>
       <name>$name</name>
       <description><![CDATA[$description]]></description>
-      ${lookAt.tag}
+      ${lookAt == null ? '' : lookAt!.tag}
       <styleUrl>$id</styleUrl>
       ${point.tag}
       <gx:balloonVisibility>${balloonContent.isEmpty ? 0 : 1}</gx:balloonVisibility>
@@ -113,7 +113,7 @@ class PlacemarkEntity {
       'name': name,
       'description': description ?? '',
       'icon': icon ?? '',
-      'lookAt': lookAt.toMap(),
+      'lookAt': lookAt?.toMap(),
       'point': point.toMap()
     };
   }
@@ -125,7 +125,8 @@ class PlacemarkEntity {
       name: map['name'],
       description: map['description'],
       icon: map['icon'],
-      lookAt: LookAtEntity.fromMap(map['lookAt']),
+      lookAt:
+          map['lookAt'] != null ? LookAtEntity.fromMap(map['lookAt']) : null,
       point: PointEntity.fromMap(map['point']),
       line: LineEntity.fromMap(map['line']),
     );
