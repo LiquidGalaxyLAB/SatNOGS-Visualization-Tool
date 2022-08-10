@@ -1,10 +1,10 @@
 # SatNOGS Visualization Tool
 
-![License](https://img.shields.io/github/license/LiquidGalaxyLAB/SatNOGS-Visualization-Tool)
-![Top language](https://img.shields.io/github/languages/top/LiquidGalaxyLAB/SatNOGS-Visualization-Tool)
-![Languages](https://img.shields.io/github/languages/count/LiquidGalaxyLAB/SatNOGS-Visualization-Tool)
-![Repository size](https://img.shields.io/github/repo-size/LiquidGalaxyLAB/SatNOGS-Visualization-Tool)
-![Lastest tag](https://img.shields.io/github/v/tag/LiquidGalaxyLAB/SatNOGS-Visualization-Tool)
+![License](https://img.shields.io/github/license/LiquidGalaxyLAB/SatNOGS-Visualization-Tool?color=%23FFC857)
+![Top language](https://img.shields.io/github/languages/top/LiquidGalaxyLAB/SatNOGS-Visualization-Tool?color=%230090C1)
+![Languages](https://img.shields.io/github/languages/count/LiquidGalaxyLAB/SatNOGS-Visualization-Tool?color=%234CFA72)
+![Repository size](https://img.shields.io/github/repo-size/LiquidGalaxyLAB/SatNOGS-Visualization-Tool?color=%2375DEFF)
+![Lastest tag](https://img.shields.io/github/v/tag/LiquidGalaxyLAB/SatNOGS-Visualization-Tool?color=%23DE6EFD)
 
 ### Summary
 
