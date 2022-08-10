@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/settings_entity.dart';
 import 'package:satnogs_visualization_tool/entities/ssh_entity.dart';
+import 'package:satnogs_visualization_tool/services/lg_service.dart';
 import 'package:satnogs_visualization_tool/services/settings_service.dart';
 import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
@@ -31,6 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   SettingsService get _settingsService => GetIt.I<SettingsService>();
   SSHService get _sshService => GetIt.I<SSHService>();
+  LGService get _lgService => GetIt.I<LGService>();
 
   @override
   void initState() {
@@ -111,6 +113,10 @@ class _SettingsPageState extends State<SettingsPage> {
         setState(() {
           _connected = result == 'session_connected';
         });
+
+        if (result == 'session_connected') {
+          await _lgService.setLogos();
+        }
       }
 
       _sshService.disconnect();
@@ -148,11 +154,13 @@ class _SettingsPageState extends State<SettingsPage> {
       _loading = true;
     });
 
-    await _settingsService.setSettings(SettingsEntity(
-        ip: _ipController.text,
-        password: _pwController.text,
-        port: int.parse(_portController.text),
-        username: _usernameController.text));
+    await _settingsService.setSettings(
+      SettingsEntity(
+          ip: _ipController.text,
+          password: _pwController.text,
+          port: int.parse(_portController.text),
+          username: _usernameController.text),
+    );
 
     await _checkConnection();
 
