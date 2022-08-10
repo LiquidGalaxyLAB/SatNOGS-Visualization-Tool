@@ -44,7 +44,7 @@ class LGService {
   Future<void> setLogos() async {
     final screenOverlay = ScreenOverlayEntity(
       name: 'LogoSO',
-      icon: 'https://i.imgur.com/sDsdizm.png',
+      icon: '',
       overlayX: 0,
       overlayY: 1,
       screenX: 0.02,
