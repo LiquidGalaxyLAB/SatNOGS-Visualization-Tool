@@ -13,8 +13,19 @@ class LGService {
 
   final String _url = 'http://lg1:81';
 
-  /// Property that defines the slave screen number that has the logos.
-  int logoScreen = 3;
+  /// Property that defines the slave screen number that has the logos. Defaults
+  /// to `5`.
+  int screenAmount = 5;
+
+  /// Property that defines the logo slave screen number according to the
+  /// [screenAmount] property.
+  int get logoScreen {
+    if (screenAmount == 1) {
+      return 1;
+    }
+
+    return (screenAmount / 2).floor() + 2;
+  }
 
   /// Puts the given [content] into the `/tmp/query.txt` file.
   Future<void> query(String content) async {
@@ -40,6 +51,13 @@ class LGService {
     await query('exittour=true');
   }
 
+  /// Gets the Liquid Galaxy rig screen amount. Returns a [String] that
+  /// represents the screen amount.
+  Future<String?> getScreenAmount() async {
+    return _sshService
+        .execute("grep -oP '(?<=DHCP_LG_FRAMES_MAX=).*' personavars.txt");
+  }
+
   /// Sets the logos KML into the Liquid Galaxy rig.
   Future<void> setLogos() async {
     final screenOverlay = ScreenOverlayEntity(
@@ -60,6 +78,11 @@ class LGService {
     );
 
     try {
+      final result = await getScreenAmount();
+      if (result != null) {
+        screenAmount = int.parse(result);
+      }
+
       await _sshService.execute(
           "echo '${kml.body}' > /var/www/html/kml/slave_$logoScreen.kml");
     } catch (e) {
@@ -79,31 +102,6 @@ class LGService {
       // ignore: avoid_print
       print(e);
     }
-  }
-
-  Future<void> sendMasterKml(KMLEntity kml,
-      {List<Map<String, String>> images = const []}) async {
-    const fileName = 'master_1.kml';
-
-    for (var img in images) {
-      final image = await _fileService.createImage(img['name']!, img['path']!);
-      await _sshService.upload(image.path);
-    }
-
-    final kmlContent = '''
-<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
-  <Document id="master_1">
-  </Document>
-</kml>
-''';
-
-    print(kmlContent);
-
-    await _sshService
-        .execute('echo \'$kmlContent\' > /var/www/html/kml/$fileName');
-    // await _sshService
-    //     .execute('echo "\n$_url/kml/$fileName" >> /var/www/html/kmls.txt');
   }
 
   /// Sends a the given [kml] to the Liquid Galaxy system.
