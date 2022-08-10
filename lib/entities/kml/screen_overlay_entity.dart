@@ -78,4 +78,18 @@ class ScreenOverlayEntity {
         <size x="$sizeX" y="$sizeY" xunits="pixels" yunits="pixels"/>
       </ScreenOverlay>
     ''';
+
+  /// Generates a [ScreenOverlayEntity] with the logos data in it.
+  factory ScreenOverlayEntity.logos() {
+    return ScreenOverlayEntity(
+      name: 'LogoSO',
+      icon: '',
+      overlayX: 0,
+      overlayY: 1,
+      screenX: 0.02,
+      screenY: 0.95,
+      sizeX: 500,
+      sizeY: 500,
+    );
+  }
 }
