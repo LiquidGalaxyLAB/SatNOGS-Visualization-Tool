@@ -34,14 +34,17 @@ class SSHService {
 
   /// Connects to the current client, executes a command into it and then
   /// disconnects.
-  Future<void> execute(String command) async {
+  Future<String?> execute(String command) async {
     String result = await connect();
 
+    String? execResult;
+
     if (result == 'session_connected') {
-      await _client.execute(command);
+      execResult = await _client.execute(command);
     }
 
     await disconnect();
+    return execResult;
   }
 
   /// Connects to a machine using the current client.
