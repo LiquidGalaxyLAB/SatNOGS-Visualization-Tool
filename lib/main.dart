@@ -41,8 +41,20 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  /// Sets the Liquid Galaxy logos into the rig.
+  void setLogos() async {
+    try {
+      await GetIt.I<LGService>().setLogos();
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    setLogos();
+
     return MaterialApp(
       title: 'SatNOGS Visualization Tool',
       debugShowCheckedModeBanner: false,

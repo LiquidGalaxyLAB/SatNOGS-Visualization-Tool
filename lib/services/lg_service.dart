@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/screen_overlay_entity.dart';
 import 'package:satnogs_visualization_tool/services/file_service.dart';
 import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 
@@ -11,6 +12,9 @@ class LGService {
   FileService get _fileService => GetIt.I<FileService>();
 
   final String _url = 'http://lg1:81';
+
+  /// Property that defines the slave screen number that has the logos.
+  int logoScreen = 3;
 
   /// Puts the given [content] into the `/tmp/query.txt` file.
   Future<void> query(String content) async {
@@ -34,6 +38,47 @@ class LGService {
   /// Uses the [query] method to stop all tours in Google Earth.
   Future<void> stopTour() async {
     await query('exittour=true');
+  }
+
+  /// Sets the logos KML into the Liquid Galaxy rig.
+  Future<void> setLogos() async {
+    final screenOverlay = ScreenOverlayEntity(
+      name: 'LogoSO',
+      icon: '',
+      overlayX: 0,
+      overlayY: 1,
+      screenX: 0.02,
+      screenY: 0.95,
+      sizeX: 500,
+      sizeY: 500,
+    );
+
+    final kml = KMLEntity(
+      name: 'SVT-logos',
+      content: '<name>Logos</name>',
+      screenOverlay: screenOverlay.tag,
+    );
+
+    try {
+      await _sshService.execute(
+          "echo '${kml.body}' > /var/www/html/kml/slave_$logoScreen.kml");
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
+  }
+
+  /// Clears the a slave according to the given [screen] number.
+  Future<void> clearSlave(int screen) async {
+    final kml = KMLEntity.generateBlank('slave_$screen');
+
+    try {
+      await _sshService
+          .execute("echo '$kml' > /var/www/html/kml/slave_$screen.kml");
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
   }
 
   Future<void> sendMasterKml(KMLEntity kml,
