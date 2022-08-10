@@ -8,22 +8,22 @@ class ScreenOverlayEntity {
   String icon;
 
   /// Property that defines the screen overlay `overlayX`.
-  int overlayX;
+  double overlayX;
 
   /// Property that defines the screen overlay `overlayY`.
-  int overlayY;
+  double overlayY;
 
   /// Property that defines the screen overlay `screenX`.
-  int screenX;
+  double screenX;
 
   /// Property that defines the screen overlay `screenY`.
-  int screenY;
+  double screenY;
 
   /// Property that defines the screen overlay `sizeX`.
-  int sizeX;
+  double sizeX;
 
   /// Property that defines the screen overlay `sizeY`.
-  int sizeY;
+  double sizeY;
 
   ScreenOverlayEntity({
     required this.name,
@@ -69,7 +69,7 @@ class ScreenOverlayEntity {
       <ScreenOverlay>
         <name>$name</name>
         <Icon>
-          <![CDATA[$icon]]>
+          <href>$icon</href>
         </Icon>
         <color>ffffffff</color>
         <overlayXY x="$overlayX" y="$overlayY" xunits="fraction" yunits="fraction"/>
