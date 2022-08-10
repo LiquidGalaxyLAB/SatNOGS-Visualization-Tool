@@ -90,6 +90,7 @@ active solo KML refresh for each slave screen.
 <br><br>
 
 4. Go to the _**Refresh**_ tab and change the _**Time-Based Refresh**_ to: **Periodically | 0hrs | 0mins | 1secs**
+   - The recomended _**secs**_ if from 1 to 3 seconds.
    - Click on _**OK**_ and close the side bar by following the first step.
 
 <img src="./assets/docs/ge-s4.png" alt="Step 4" width="100%">
