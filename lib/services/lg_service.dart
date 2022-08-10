@@ -11,6 +11,7 @@ class LGService {
   SSHService get _sshService => GetIt.I<SSHService>();
   FileService get _fileService => GetIt.I<FileService>();
 
+  /// Property that defines the master rig url.
   final String _url = 'http://lg1:81';
 
   /// Property that defines the slave screen number that has the logos. Defaults
@@ -24,7 +25,19 @@ class LGService {
       return 1;
     }
 
+    // Gets the most left screen.
     return (screenAmount / 2).floor() + 2;
+  }
+
+  /// Property that defines the balloon slave screen number according to the
+  /// [screenAmount] property.
+  int get balloonScreen {
+    if (screenAmount == 1) {
+      return 1;
+    }
+
+    // Gets the most right screen.
+    return (screenAmount / 2).floor() + 1;
   }
 
   /// Puts the given [content] into the `/tmp/query.txt` file.
@@ -58,22 +71,17 @@ class LGService {
         .execute("grep -oP '(?<=DHCP_LG_FRAMES_MAX=).*' personavars.txt");
   }
 
-  /// Sets the logos KML into the Liquid Galaxy rig.
-  Future<void> setLogos() async {
-    final screenOverlay = ScreenOverlayEntity(
-      name: 'LogoSO',
-      icon: '',
-      overlayX: 0,
-      overlayY: 1,
-      screenX: 0.02,
-      screenY: 0.95,
-      sizeX: 500,
-      sizeY: 500,
-    );
+  /// Sets the logos KML into the Liquid Galaxy rig. A KML [name] and [content]
+  /// may be passed, but it's not required.
+  Future<void> setLogos({
+    String name = 'SVT-logos',
+    String content = '<name>Logos</name>',
+  }) async {
+    final screenOverlay = ScreenOverlayEntity.logos();
 
     final kml = KMLEntity(
-      name: 'SVT-logos',
-      content: '<name>Logos</name>',
+      name: name,
+      content: content,
       screenOverlay: screenOverlay.tag,
     );
 
@@ -83,8 +91,18 @@ class LGService {
         screenAmount = int.parse(result);
       }
 
-      await _sshService.execute(
-          "echo '${kml.body}' > /var/www/html/kml/slave_$logoScreen.kml");
+      await sendKMLToSlave(logoScreen, kml.body);
+    } catch (e) {
+      // ignore: avoid_print
+      print(e);
+    }
+  }
+
+  /// Sends a KML [content] to the given slave [screen].
+  Future<void> sendKMLToSlave(int screen, String content) async {
+    try {
+      await _sshService
+          .execute("echo '$content' > /var/www/html/kml/slave_$screen.kml");
     } catch (e) {
       // ignore: avoid_print
       print(e);
@@ -149,9 +167,18 @@ class LGService {
         .execute('echo "\n$_url/$fileName" >> /var/www/html/kmls.txt');
   }
 
-  /// Clears all `KMLs` from the Google Earth.
-  Future<void> clearKml() async {
+  /// Clears all `KMLs` from the Google Earth. The [keepLogos] keeps the logos
+  /// after clearing (default to `true`).
+  Future<void> clearKml({bool keepLogos = true}) async {
     await stopTour();
     await _sshService.execute('> /var/www/html/kmls.txt');
+
+    for (var i = 2; i <= screenAmount; i++) {
+      await clearSlave(i);
+    }
+
+    if (keepLogos) {
+      await setLogos();
+    }
   }
 }

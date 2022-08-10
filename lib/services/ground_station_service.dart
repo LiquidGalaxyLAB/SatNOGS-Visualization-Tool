@@ -92,9 +92,9 @@ class GroundStationService {
     return res.map((gs) => GroundStationEntity.fromMap(gs)).toList();
   }
 
-  /// Builds and returns a satellite `KML` [String] according to the given
-  /// [station].
-  KMLEntity buildKml(
+  /// Builds and returns a satellite `Placemark` entity according to the given
+  /// [station] and other params.
+  PlacemarkEntity buildPlacemark(
     GroundStationEntity station,
     bool balloon, {
     Map<String, dynamic>? extraData,
@@ -114,7 +114,7 @@ class GroundStationService {
       altitude: lookAt.altitude,
     );
 
-    final placemark = PlacemarkEntity(
+    return PlacemarkEntity(
       id: station.id.toString(),
       name: '${station.name} (${station.getStatusLabel().toUpperCase()})',
       lookAt: updatePosition ? lookAt : null,
@@ -124,11 +124,6 @@ class GroundStationService {
           extraData != null && balloon ? station.balloonContent(extraData) : '',
       icon: 'station.png',
       line: LineEntity(id: station.id.toString(), coordinates: []),
-    );
-
-    return KMLEntity(
-      name: station.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
-      content: placemark.tag,
     );
   }
 

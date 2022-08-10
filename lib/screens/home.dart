@@ -90,7 +90,6 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     _initConnectivity();
-    _setSSH();
 
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
@@ -137,9 +136,6 @@ class _HomePageState extends State<HomePage> {
           result == ConnectivityResult.wifi;
     });
   }
-
-  /// Sets the SSH client into SSH service with the local settings data.
-  void _setSSH() {}
 
   /// Loads all satellites from the local storage or database based on the
   /// [synchronize] param.
@@ -415,7 +411,6 @@ class _HomePageState extends State<HomePage> {
         name: satellite.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
         content: placemark.tag,
       );
-      // await _lgService.sendMasterKml(kml);
 
       await _lgService.sendKml(
         kml,
@@ -426,6 +421,26 @@ class _HomePageState extends State<HomePage> {
           }
         ],
       );
+
+      if (_lgService.balloonScreen == _lgService.logoScreen) {
+        await _lgService.setLogos(
+          name: 'SVT-logos-balloon',
+          content: '''
+            <name>Logos-Balloon</name>
+            ${placemark.balloonOnlyTag}
+          ''',
+        );
+      } else {
+        final kmlBalloon = KMLEntity(
+          name: 'SVT-balloon',
+          content: placemark.balloonOnlyTag,
+        );
+
+        await _lgService.sendKMLToSlave(
+          _lgService.balloonScreen,
+          kmlBalloon.body,
+        );
+      }
 
       if (updatePosition) {
         await _lgService.flyTo(LookAtEntity(
@@ -452,8 +467,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Views a `ground station` into the Google Earth.
-  void _viewGroundStation(GroundStationEntity station, bool showBalloon,
-      {bool updatePosition = true}) async {
+  void _viewGroundStation(
+    GroundStationEntity station,
+    bool showBalloon, {
+    bool updatePosition = true,
+  }) async {
     if (_uploading) {
       return;
     }
@@ -500,12 +518,18 @@ class _HomePageState extends State<HomePage> {
         _selectedStation = station.id;
       });
 
-      final kml = _groundStationService.buildKml(
+      final placemark = _groundStationService.buildPlacemark(
         station,
         showBalloon,
         extraData: extraData,
         updatePosition: updatePosition,
       );
+
+      final kml = KMLEntity(
+        name: station.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
+        content: placemark.tag,
+      );
+
       await _lgService.sendKml(
         kml,
         images: [
@@ -515,6 +539,26 @@ class _HomePageState extends State<HomePage> {
           }
         ],
       );
+
+      if (_lgService.balloonScreen == _lgService.logoScreen) {
+        await _lgService.setLogos(
+          name: 'SVT-logos-balloon',
+          content: '''
+            <name>Logos-Balloon</name>
+            ${placemark.balloonOnlyTag}
+          ''',
+        );
+      } else {
+        final kmlBalloon = KMLEntity(
+          name: 'SVT-balloon',
+          content: placemark.balloonOnlyTag,
+        );
+
+        await _lgService.sendKMLToSlave(
+          _lgService.balloonScreen,
+          kmlBalloon.body,
+        );
+      }
 
       if (updatePosition) {
         await _lgService.flyTo(LookAtEntity(
@@ -539,6 +583,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// Clears the current KML and keeps the logos.
   void _clearKml() async {
     try {
       setState(() {

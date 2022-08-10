@@ -97,12 +97,36 @@ class PlacemarkEntity {
       ${lookAt == null ? '' : lookAt!.tag}
       <styleUrl>$id</styleUrl>
       ${point.tag}
-      <gx:balloonVisibility>${balloonContent.isEmpty ? 0 : 1}</gx:balloonVisibility>
+      <gx:balloonVisibility>0</gx:balloonVisibility>
     </Placemark>
     <Placemark>
       <name>Orbit - $name</name>
       <styleUrl>line-$id</styleUrl>
       ${line.tag}
+    </Placemark>
+  ''';
+
+  /// Property that defines a placemark tag which contains only a balloon.
+  String get balloonOnlyTag => '''
+    <Style id="balloon-$id">
+      <BalloonStyle>
+        <bgColor>ffffffff</bgColor>
+        <text><![CDATA[
+          $balloonContent
+        ]]></text>
+      </BalloonStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+      <IconStyle>
+        <scale>0</scale>
+      </IconStyle>
+    </Style>
+    <Placemark>
+      <name>$name-Balloon</name>
+      <styleUrl>#balloon-$id</styleUrl>
+      ${point.tag}
+      <gx:balloonVisibility>${balloonContent.isEmpty ? 0 : 1}</gx:balloonVisibility>
     </Placemark>
   ''';
 
