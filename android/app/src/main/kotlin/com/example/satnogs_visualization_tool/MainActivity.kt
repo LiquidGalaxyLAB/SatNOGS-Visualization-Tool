@@ -1,4 +1,4 @@
-package com.example.satnogs_visualization_tool
+package com.satnogs_visualization_tool.android
 
 import io.flutter.embedding.android.FlutterActivity
 
