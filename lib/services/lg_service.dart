@@ -170,15 +170,25 @@ class LGService {
   /// Clears all `KMLs` from the Google Earth. The [keepLogos] keeps the logos
   /// after clearing (default to `true`).
   Future<void> clearKml({bool keepLogos = true}) async {
-    await stopTour();
-    await _sshService.execute('> /var/www/html/kmls.txt');
+    String query =
+        'echo "exittour=true" > /tmp/query.txt && > /var/www/html/kmls.txt';
 
     for (var i = 2; i <= screenAmount; i++) {
-      await clearSlave(i);
+      String blankKml = KMLEntity.generateBlank('slave_$i');
+      query += " && echo '$blankKml' > /var/www/html/kml/slave_$i.kml";
     }
 
     if (keepLogos) {
-      await setLogos();
+      final kml = KMLEntity(
+        name: 'SVT-logos',
+        content: '<name>Logos</name>',
+        screenOverlay: ScreenOverlayEntity.logos().tag,
+      );
+
+      query +=
+          " && echo '${kml.body}' > /var/www/html/kml/slave_$logoScreen.kml";
     }
+
+    await _sshService.execute(query);
   }
 }
