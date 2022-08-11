@@ -17,12 +17,9 @@
 
 ### About
 
-<p>
 The project aims to collect and show data from satellites and ground stations using the SatNOGS [database](https://db.satnogs.org) and [API](https://db.satnogs.org/api/).
 
 With the data available into the app, is possible to send it to the Liquid Galaxy system to be shown into Google Earth.
-
-</p>
 
 ### Getting started
 
