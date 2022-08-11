@@ -10,6 +10,7 @@ class ThemeColors {
   static Color warning = const Color(0xFFFFC061);
   static Color alert = const Color(0xFFFF6161);
   static Color info = const Color(0xFF79B7FF);
+  static Color logo = const Color(0xFF8CE3FF);
 
   static Color card = const Color(0XFF343434);
   static Color cardBorder = const Color(0XFF5D5D5D);
