@@ -59,10 +59,14 @@ class MyApp extends StatelessWidget {
       title: 'SatNOGS Visualization Tool',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          canvasColor: Colors.transparent,
-          primarySwatch: MaterialColor(ThemeColors.backgroundColorHex,
-              ThemeColors.backgroundColorMaterial),
-          scaffoldBackgroundColor: ThemeColors.backgroundColor),
+        canvasColor: Colors.transparent,
+        fontFamily: 'Poppins',
+        primarySwatch: MaterialColor(
+          ThemeColors.backgroundColorHex,
+          ThemeColors.backgroundColorMaterial,
+        ),
+        scaffoldBackgroundColor: ThemeColors.backgroundColor,
+      ),
       home: const HomePage(),
     );
   }
