@@ -40,6 +40,36 @@ class LGService {
     return (screenAmount / 2).floor() + 1;
   }
 
+  /// Reboots the Liquid Galaxy system.
+  Future<void> reboot() async {
+    final pw = _sshService.client.passwordOrKey;
+
+    for (var i = screenAmount; i >= 1; i--) {
+      try {
+        await _sshService
+            .execute('sshpass -p $pw ssh -t lg$i "echo $pw | sudo -S reboot"');
+      } catch (e) {
+        // ignore: avoid_print
+        print(e);
+      }
+    }
+  }
+
+  /// Shuts down the Liquid Galaxy system.
+  Future<void> shutdown() async {
+    final pw = _sshService.client.passwordOrKey;
+
+    for (var i = screenAmount; i >= 1; i--) {
+      try {
+        await _sshService.execute(
+            'sshpass -p $pw ssh -t lg$i "echo $pw | sudo -S shutdown now"');
+      } catch (e) {
+        // ignore: avoid_print
+        print(e);
+      }
+    }
+  }
+
   /// Puts the given [content] into the `/tmp/query.txt` file.
   Future<void> query(String content) async {
     await _sshService.execute('echo "$content" > /tmp/query.txt');
