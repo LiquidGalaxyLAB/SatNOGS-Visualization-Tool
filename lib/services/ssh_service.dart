@@ -12,6 +12,9 @@ class SSHService {
   /// Property that defines the SSH client instance.
   late SSHClient _client;
 
+  /// Property that defines the SSH client instance.
+  SSHClient get client => _client;
+
   /// Sets a client with the given [ssh] info.
   void setClient(SSHEntity ssh) {
     _client = SSHClient(
