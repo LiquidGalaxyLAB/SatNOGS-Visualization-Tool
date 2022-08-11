@@ -118,8 +118,6 @@ class _SettingsPageState extends State<SettingsPage> {
           await _lgService.setLogos();
         }
       }
-
-      _sshService.disconnect();
     } on Exception catch (e) {
       // ignore: avoid_print
       print('$e');
@@ -177,11 +175,12 @@ class _SettingsPageState extends State<SettingsPage> {
         shadowColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            splashRadius: 24,
-            onPressed: () {
-              Navigator.pop(context);
-            }),
+          icon: const Icon(Icons.arrow_back_rounded),
+          splashRadius: 24,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16),
@@ -190,31 +189,38 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
       body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                  child: SingleChildScrollView(
-                      child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text('Establish connection to the system',
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Establish connection to the system',
                       style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 20)),
-                  Padding(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                      ),
+                    ),
+                    Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Text(_connected ? 'Connected' : 'Disconnected',
-                          style: TextStyle(
-                              color: _connected
-                                  ? ThemeColors.success
-                                  : ThemeColors.alert,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 20))),
-                  Padding(
+                      child: Text(
+                        _connected ? 'Connected' : 'Disconnected',
+                        style: TextStyle(
+                          color: _connected
+                              ? ThemeColors.success
+                              : ThemeColors.alert,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                    Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Input(
                         controller: _usernameController,
@@ -224,8 +230,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           padding: EdgeInsets.only(left: 4),
                           child: Icon(Icons.person_rounded, color: Colors.grey),
                         ),
-                      )),
-                  Padding(
+                      ),
+                    ),
+                    Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Input(
                         controller: _pwController,
@@ -236,8 +243,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           padding: EdgeInsets.only(left: 4),
                           child: Icon(Icons.key_rounded, color: Colors.grey),
                         ),
-                      )),
-                  Padding(
+                      ),
+                    ),
+                    Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Input(
                         controller: _ipController,
@@ -248,8 +256,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           padding: EdgeInsets.only(left: 4),
                           child: Icon(Icons.router_rounded, color: Colors.grey),
                         ),
-                      )),
-                  Padding(
+                      ),
+                    ),
+                    Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Input(
                         controller: _portController,
@@ -261,21 +270,29 @@ class _SettingsPageState extends State<SettingsPage> {
                           child: Icon(Icons.account_tree_rounded,
                               color: Colors.grey),
                         ),
-                      )),
-                  Padding(
+                      ),
+                    ),
+                    Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Button(
-                          label: 'Connect',
-                          width: 140,
-                          height: 48,
-                          loading: _loading,
-                          icon: Icon(Icons.connected_tv_rounded,
-                              color: ThemeColors.backgroundColor),
-                          onPressed: _onConnect)),
-                ],
-              )))
-            ],
-          )),
+                        label: 'Connect',
+                        width: 140,
+                        height: 48,
+                        loading: _loading,
+                        icon: Icon(
+                          Icons.connected_tv_rounded,
+                          color: ThemeColors.backgroundColor,
+                        ),
+                        onPressed: _onConnect,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }

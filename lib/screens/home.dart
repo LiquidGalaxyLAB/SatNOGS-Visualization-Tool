@@ -13,6 +13,7 @@ import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
 import 'package:satnogs_visualization_tool/enums/ground_station_status_enum.dart';
 import 'package:satnogs_visualization_tool/enums/satellite_status_enum.dart';
+import 'package:satnogs_visualization_tool/screens/about.dart';
 import 'package:satnogs_visualization_tool/screens/settings.dart';
 import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
 import 'package:satnogs_visualization_tool/services/lg_service.dart';
@@ -635,57 +636,81 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         actions: [
           TextButton.icon(
-            icon:
-                const Icon(Icons.cleaning_services_rounded, color: Colors.grey),
-            label: Text(_cleaning ? 'CLEANING' : 'CLEAR',
-                style: TextStyle(
-                  color: _cleaning ? Colors.grey.withOpacity(0.8) : Colors.grey,
-                  fontWeight: FontWeight.w600,
-                )),
+            icon: const Icon(
+              Icons.cleaning_services_rounded,
+              color: Colors.grey,
+            ),
+            label: Text(
+              _cleaning ? 'CLEANING' : 'CLEAR',
+              style: TextStyle(
+                color: _cleaning ? Colors.grey.withOpacity(0.8) : Colors.grey,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             onPressed: () {
               _clearKml();
             },
           ),
           TextButton.icon(
-              icon: Icon(
-                  !_online
-                      ? Icons.sync_problem_rounded
-                      : Icons.cloud_sync_rounded,
+            icon: Icon(
+              !_online ? Icons.sync_problem_rounded : Icons.cloud_sync_rounded,
+              color: !_online
+                  ? ThemeColors.alert
+                  : _loading
+                      ? Colors.grey
+                      : ThemeColors.warning,
+            ),
+            label: Text(
+              _loading ? 'SYNCING' : 'SYNC',
+              style: TextStyle(
                   color: !_online
                       ? ThemeColors.alert
                       : _loading
                           ? Colors.grey
-                          : ThemeColors.warning),
-              label: Text(_loading ? 'SYNCING' : 'SYNC',
-                  style: TextStyle(
-                      color: !_online
-                          ? ThemeColors.alert
-                          : _loading
-                              ? Colors.grey
-                              : ThemeColors.warning,
-                      fontWeight: FontWeight.bold)),
-              onPressed: () {
-                if (_loading || !_online) {
-                  return;
-                }
+                          : ThemeColors.warning,
+                  fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              if (_loading || !_online) {
+                return;
+              }
 
-                _loadSatellites(true);
-                _loadTLEs(true);
-                _loadGroundStations(true);
-                _loadTransmitters(true);
-              }),
+              _loadSatellites(true);
+              _loadTLEs(true);
+              _loadGroundStations(true);
+              _loadTransmitters(true);
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.info_outline_rounded,
+              color: ThemeColors.info,
+            ),
+            splashRadius: 24,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AboutPage(),
+                ),
+              );
+            },
+          ),
           Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: IconButton(
-                  icon: const Icon(Icons.settings_rounded),
-                  splashRadius: 24,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsPage()),
-                    );
-                  }))
+            padding: const EdgeInsets.only(right: 4),
+            child: IconButton(
+              icon: const Icon(Icons.settings_rounded),
+              splashRadius: 24,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsPage(),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
       body: Column(

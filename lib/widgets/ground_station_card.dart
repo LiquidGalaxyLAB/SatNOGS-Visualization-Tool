@@ -56,9 +56,10 @@ class _GroundStationCardState extends State<GroundStationCard> {
                         child: Text(
                       widget.groundStation.name,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 20),
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
                     )),
                     Text(widget.groundStation.getStatusLabel().toUpperCase(),
                         style: TextStyle(

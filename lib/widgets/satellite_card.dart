@@ -71,7 +71,7 @@ class _SatelliteCardState extends State<SatelliteCard> {
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
-                              fontSize: 20,
+                              fontSize: 18,
                             ),
                           )),
                           Text(widget.satellite.getStatusLabel().toUpperCase(),
