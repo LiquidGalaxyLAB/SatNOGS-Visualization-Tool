@@ -11,6 +11,7 @@ class SatelliteCard extends StatefulWidget {
     required this.satellite,
     required this.selected,
     required this.onOrbit,
+    required this.onSimulate,
     required this.onBalloonToggle,
     required this.onOrbitPeriodChange,
     required this.onView,
@@ -22,6 +23,7 @@ class SatelliteCard extends StatefulWidget {
   final SatelliteEntity satellite;
 
   final Function(bool) onOrbit;
+  final Function(bool) onSimulate;
   final Function(bool) onBalloonToggle;
   final Function(SatelliteEntity) onView;
   final Function(double) onOrbitPeriodChange;
@@ -32,9 +34,10 @@ class SatelliteCard extends StatefulWidget {
 
 class _SatelliteCardState extends State<SatelliteCard> {
   bool _orbiting = false;
+  bool _simulating = false;
   bool _balloonVisible = true;
 
-  double _orbitPeriod = 2.8;
+  double _orbitPeriod = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +198,7 @@ class _SatelliteCardState extends State<SatelliteCard> {
 
                           setState(() {
                             _orbiting = !_orbiting;
+                            _simulating = false;
                           });
 
                           return;
@@ -204,6 +208,7 @@ class _SatelliteCardState extends State<SatelliteCard> {
 
                         setState(() {
                           _orbiting = false;
+                          _simulating = false;
                           _balloonVisible = true;
                           _orbitPeriod = 2.8;
                         });
@@ -273,8 +278,8 @@ class _SatelliteCardState extends State<SatelliteCard> {
                               child: Slider(
                                 value: _orbitPeriod,
                                 min: 1,
-                                max: 10,
-                                divisions: 100,
+                                max: 12,
+                                divisions: 120,
                                 activeColor:
                                     ThemeColors.primaryColor.withOpacity(0.8),
                                 thumbColor: ThemeColors.primaryColor,
@@ -299,7 +304,55 @@ class _SatelliteCardState extends State<SatelliteCard> {
                           )
                         ],
                       ),
-                    )
+                    ),
+              !widget.selected
+                  ? Container()
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.all(0),
+                              tapTargetSize: MaterialTapTargetSize.padded,
+                              alignment: Alignment.centerRight,
+                              minimumSize: const Size(120, 24),
+                            ),
+                            icon: Icon(
+                              !_simulating
+                                  ? Icons.rocket_launch_rounded
+                                  : Icons.stop_rounded,
+                              color: widget.disabled
+                                  ? Colors.grey
+                                  : ThemeColors.primaryColor,
+                            ),
+                            label: Text(
+                              _simulating ? 'STOP SIMULATION' : 'SIMULATE',
+                              style: TextStyle(
+                                color: widget.disabled
+                                    ? Colors.grey
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            onPressed: () async {
+                              if (widget.disabled) {
+                                return;
+                              }
+
+                              widget.onSimulate(!_simulating);
+
+                              setState(() {
+                                _orbiting = false;
+                                _simulating = !_simulating;
+                              });
+                            },
+                          )
+                        ],
+                      ),
+                    ),
             ],
           ),
         ));
