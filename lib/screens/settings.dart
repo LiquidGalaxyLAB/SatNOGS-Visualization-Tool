@@ -38,8 +38,7 @@ class _SettingsPageState extends State<SettingsPage>
   bool _canceled = false;
 
   bool _clearingKml = false;
-  bool _fullRebooting = false;
-  bool _softRebooting = false;
+  bool _rebooting = false;
   bool _shuttingDown = false;
 
   Timer? _timer;
@@ -49,6 +48,13 @@ class _SettingsPageState extends State<SettingsPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _initNetworkState();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _timer?.cancel();
+    super.dispose();
   }
 
   /// Initializes and sets the network connection form.
@@ -382,18 +388,18 @@ class _SettingsPageState extends State<SettingsPage>
               Icons.restart_alt_rounded,
               () async {
                 setState(() {
-                  _fullRebooting = true;
+                  _rebooting = true;
                 });
 
                 try {
                   await _lgService.reboot();
                 } finally {
                   setState(() {
-                    _fullRebooting = false;
+                    _rebooting = false;
                   });
                 }
               },
-              loading: _fullRebooting,
+              loading: _rebooting,
             ),
             _buildLGTaskButton(
               'Power off',
