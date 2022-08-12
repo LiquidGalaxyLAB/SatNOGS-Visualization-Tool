@@ -448,7 +448,7 @@ class _HomePageState extends State<HomePage> {
           lat: tleCoord['lat']!,
           lng: tleCoord['lng']!,
           altitude: tleCoord['alt']!,
-          range: '400000',
+          range: '4000000',
           tilt: '60',
           heading: '0',
         ));
@@ -802,6 +802,13 @@ class _HomePageState extends State<HomePage> {
                                     onSatelliteOrbit: (value) {
                                       if (value) {
                                         _lgService.startTour('Orbit');
+                                      } else {
+                                        _lgService.stopTour();
+                                      }
+                                    },
+                                    onSatelliteSimulate: (value) {
+                                      if (value) {
+                                        _lgService.startTour('SimulationTour');
                                       } else {
                                         _lgService.stopTour();
                                       }

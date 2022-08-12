@@ -11,12 +11,13 @@ class DataList extends StatelessWidget {
     required this.render,
     required this.selected,
     this.onSatelliteOrbit,
-    this.onSatelliteOrbitPeriodChange,
-    this.onSatelliteBalloonToggle,
-    this.onStationBalloonToggle,
     this.onSatelliteView,
+    this.onSatelliteSimulate,
+    this.onSatelliteBalloonToggle,
+    this.onSatelliteOrbitPeriodChange,
     this.onStationOrbit,
     this.onStationView,
+    this.onStationBalloonToggle,
     this.disabled,
   }) : super(key: key);
 
@@ -25,8 +26,9 @@ class DataList extends StatelessWidget {
   final Map<String, dynamic> selected;
 
   final Function(bool)? onSatelliteOrbit;
-  final Function(SatelliteEntity, bool)? onSatelliteBalloonToggle;
+  final Function(bool)? onSatelliteSimulate;
   final Function(SatelliteEntity)? onSatelliteView;
+  final Function(SatelliteEntity, bool)? onSatelliteBalloonToggle;
   final Function(SatelliteEntity, double)? onSatelliteOrbitPeriodChange;
   final bool? disabled;
 
@@ -58,6 +60,9 @@ class DataList extends StatelessWidget {
                   },
                   onOrbit: (value) {
                     onSatelliteOrbit!(value);
+                  },
+                  onSimulate: (value) {
+                    onSatelliteSimulate!(value);
                   },
                   onView: (satellite) {
                     onSatelliteView!(satellite);

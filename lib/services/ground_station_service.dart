@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 import 'package:html/dom.dart';
 import 'package:http/http.dart' as http;
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
-import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/line_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/orbit_entity.dart';
@@ -120,6 +119,8 @@ class GroundStationService {
       lookAt: updatePosition ? lookAt : null,
       point: point,
       description: '',
+      viewOrbit: false,
+      scale: 2.0,
       balloonContent:
           extraData != null && balloon ? station.balloonContent(extraData) : '',
       icon: 'station.png',
