@@ -100,6 +100,16 @@ class LineEntity {
     return coords;
   }
 
+  /// Returns a [Map] from the current [LineEntity].
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'coordinates': coordinates,
+      'altitudeMode': altitudeMode,
+      'drawOrder': drawOrder,
+    };
+  }
+
   /// Returns a [LineEntity] from the given [map].
   factory LineEntity.fromMap(Map<String, dynamic> map) {
     return LineEntity(

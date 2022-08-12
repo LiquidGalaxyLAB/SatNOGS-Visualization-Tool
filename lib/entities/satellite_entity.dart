@@ -138,14 +138,14 @@ class SatelliteEntity {
   /// Gets the orbit coordinates from the current satellite.
   ///
   /// Returns a [List] of coordinates with [lat], [lng] and [alt].
-  List<Map<String, double>> getOrbitCoordinates({double step = 2.8}) {
+  List<Map<String, double>> getOrbitCoordinates({double step = 3}) {
     if (tle == null) {
       return [];
     }
 
     List<Map<String, double>> coords = [];
 
-    double displacement = 3.2;
+    double displacement = 3.3 - step / 361;
     double spot = 0;
 
     while (spot < 361) {
