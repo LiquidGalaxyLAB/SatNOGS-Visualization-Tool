@@ -634,6 +634,7 @@ class _HomePageState extends State<HomePage> {
         title: const Text('SatNOGS Visualization Tool'),
         shadowColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         actions: [
           TextButton.icon(
             icon: const Icon(
