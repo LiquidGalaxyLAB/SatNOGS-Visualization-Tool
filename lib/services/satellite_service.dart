@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
-import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/line_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/orbit_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/placemark_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/point_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/tour_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
 import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
@@ -82,7 +82,7 @@ class SatelliteService {
         lng: coord['lng']!,
         lat: coord['lat']!,
         altitude: coord['alt']!,
-        range: '400000',
+        range: '4000000',
         tilt: '60',
         heading: '0',
       );
@@ -98,6 +98,19 @@ class SatelliteService {
 
     satellite.tle = tle;
 
+    final coordinates = satellite.getOrbitCoordinates(step: orbitPeriod);
+
+    final tour = TourEntity(
+      name: 'SimulationTour',
+      placemarkId: 'p-${satellite.id}',
+      initialCoordinate: {
+        'lat': point.lat,
+        'lng': point.lng,
+        'altitude': point.altitude,
+      },
+      coordinates: coordinates,
+    );
+
     return PlacemarkEntity(
       id: satellite.id,
       name: '${satellite.name} (${satellite.getStatusLabel().toUpperCase()})',
@@ -110,8 +123,9 @@ class SatelliteService {
       line: LineEntity(
         id: satellite.id,
         altitudeMode: 'absolute',
-        coordinates: satellite.getOrbitCoordinates(step: orbitPeriod),
+        coordinates: coordinates,
       ),
+      tour: tour,
     );
   }
 
@@ -129,7 +143,7 @@ class SatelliteService {
         lng: coord['lng']!,
         lat: coord['lat']!,
         altitude: coord['alt']!,
-        range: '400000',
+        range: '4000000',
         tilt: '60',
         heading: '0',
       );
