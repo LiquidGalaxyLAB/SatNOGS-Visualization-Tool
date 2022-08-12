@@ -44,7 +44,7 @@ $ flutter run --no-sound-null-safety
 
 ### Building the app
 
-In order to build the app, run the following command:
+In order to have a installed version of the app, you may [download the APK](https://github.com/LiquidGalaxyLAB/SatNOGS-Visualization-Tool/tree/develop/releases) in this repository or run the command below:
 
 ```bash
 $ flutter build apk --no-sound-null-safety
