@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
+import 'package:satnogs_visualization_tool/screens/splash_screen.dart';
 import 'package:satnogs_visualization_tool/services/file_service.dart';
 import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
 import 'package:satnogs_visualization_tool/services/lg_service.dart';
@@ -11,7 +12,6 @@ import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/services/tle_service.dart';
 import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
-import 'package:satnogs_visualization_tool/screens/home.dart';
 
 /// Registers all services into the application.
 void setupServices() {
@@ -67,7 +67,7 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: ThemeColors.backgroundColor,
       ),
-      home: const HomePage(),
+      home: const SplashScreenPage(),
     );
   }
 }
