@@ -34,7 +34,8 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     double screenWidth = MediaQuery.of(context).size.width;
 
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(_homeRoute());
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomePage()));
     });
 
     return SafeArea(
@@ -80,19 +81,6 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
           ),
         ),
       ),
-    );
-  }
-
-  /// Returns the Home page route with a fade transition.
-  Route _homeRoute() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => const HomePage(),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation.drive(CurveTween(curve: Curves.ease)),
-          child: child,
-        );
-      },
     );
   }
 }
