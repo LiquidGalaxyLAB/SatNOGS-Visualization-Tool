@@ -105,7 +105,7 @@ class _SatelliteInfoPageState extends State<SatelliteInfoPage>
                 children: [
                   const Icon(Icons.settings_input_antenna_rounded),
                   _transmitters.isEmpty
-                      ? Container()
+                      ? Positioned(top: 0, child: Container())
                       : Positioned(
                           top: -16,
                           right: -badgeSize / 2 - 4,
@@ -141,7 +141,25 @@ class _SatelliteInfoPageState extends State<SatelliteInfoPage>
         controller: _tabController,
         children: [
           _buildSatelliteInfo(),
-          _buildSatelliteTransmitter(),
+          _transmitters.isNotEmpty
+              ? _buildSatelliteTransmitter()
+              : Padding(
+                  padding: const EdgeInsets.only(top: 32),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'No transmitters available',
+                        style: TextStyle(
+                          color: ThemeColors.warning,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
           _buildSatelliteTLE(),
         ],
       ),
@@ -159,16 +177,16 @@ class _SatelliteInfoPageState extends State<SatelliteInfoPage>
             _buildInfoSection(
               'Latest Two-Line Element (TLE)',
               _tle == null
-                  ? 'Not available'
+                  ? ''
                   : '${_tle!.line0}\r\n${_tle!.line1}\r\n${_tle!.line2}',
             ),
             _buildInfoSection(
               'TLE Source',
-              _tle == null ? 'Not available' : _tle!.source,
+              _tle == null ? '' : _tle!.source,
             ),
             _buildInfoSection(
               'TLE Updated at',
-              _tle == null ? 'Not available' : parseDateString(_tle!.updated),
+              _tle == null ? '' : parseDateString(_tle!.updated),
             ),
           ],
         ),
