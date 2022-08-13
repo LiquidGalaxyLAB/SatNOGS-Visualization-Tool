@@ -29,11 +29,26 @@ class _AboutPageState extends State<AboutPage> {
   /// Property that defines the author LinkedIn profile name.
   final _authorLinkedIn = 'mchalgarra';
 
-  /// Opens the email app with the author's email in it.
-  void _sendEmail() async {
+  /// Property that defines the organization Instagram.
+  final _orgInstagram = '_liquidgalaxy';
+
+  /// Property that defines the organization Twitter.
+  final _orgTwitter = '_liquidgalaxy';
+
+  /// Property that defines the organization GitHub profile name.
+  final _orgGitHub = 'LiquidGalaxyLAB';
+
+  /// Property that defines the organization LinkedIn profile name.
+  final _orgLinkedIn = 'google-summer-of-code---liquid-galaxy-project';
+
+  /// Property that defines the organization website URL.
+  final _orgWebsite = 'www.liquidgalaxy.eu';
+
+  /// Opens the email app with the given [email] in it.
+  void _sendEmail(String email) async {
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: _authorEmail,
+      path: email,
     );
 
     if (await canLaunchUrl(emailLaunchUri)) {
@@ -41,18 +56,45 @@ class _AboutPageState extends State<AboutPage> {
     }
   }
 
-  /// Opens the author's GitHub profile.
-  void _openGitHub() async {
-    final Uri ghLaunchUri = Uri.https('github.com', '/$_authorGitHub');
+  /// Opens the [account]'s GitHub profile.
+  void _openGitHub(String account) async {
+    final Uri ghLaunchUri = Uri.https('github.com', '/$account');
 
     if (await canLaunchUrl(ghLaunchUri)) {
       await launchUrl(ghLaunchUri, mode: LaunchMode.externalApplication);
     }
   }
 
-  /// Opens the author's LinkedIn profile.
-  void _openLinkedIn() async {
-    final Uri liLaunchUri = Uri.https('linkedin.com', '/in/$_authorLinkedIn');
+  /// Opens the [account]'s LinkedIn profile.
+  void _openLinkedIn(String account) async {
+    final Uri liLaunchUri = Uri.https('linkedin.com', '/$account');
+
+    if (await canLaunchUrl(liLaunchUri)) {
+      await launchUrl(liLaunchUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Opens the [account]'s Instagram profile.
+  void _openInstagram(String account) async {
+    final Uri liLaunchUri = Uri.https('instagram.com', '/$account');
+
+    if (await canLaunchUrl(liLaunchUri)) {
+      await launchUrl(liLaunchUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Opens the [account]'s Twitter profile.
+  void _openTwitter(String account) async {
+    final Uri liLaunchUri = Uri.https('twitter.com', '/$account');
+
+    if (await canLaunchUrl(liLaunchUri)) {
+      await launchUrl(liLaunchUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Opens the given [link].
+  void _openLink(String link) async {
+    final Uri liLaunchUri = Uri.parse(link);
 
     if (await canLaunchUrl(liLaunchUri)) {
       await launchUrl(liLaunchUri, mode: LaunchMode.externalApplication);
@@ -130,6 +172,48 @@ class _AboutPageState extends State<AboutPage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              iconSize: 30,
+                              icon: const Icon(
+                                Icons.mail_rounded,
+                                color: Colors.white,
+                              ),
+                              splashRadius: 24,
+                              tooltip: _authorEmail,
+                              onPressed: () {
+                                _sendEmail(_authorEmail);
+                              },
+                            ),
+                            IconButton(
+                              iconSize: 30,
+                              splashRadius: 24,
+                              icon: const Icon(
+                                SVT.github,
+                                color: Colors.white,
+                              ),
+                              tooltip: _authorGitHub,
+                              onPressed: () {
+                                _openGitHub(_authorGitHub);
+                              },
+                            ),
+                            IconButton(
+                              iconSize: 30,
+                              icon: const Icon(
+                                SVT.linkedin_in,
+                                color: Colors.white,
+                              ),
+                              splashRadius: 24,
+                              tooltip: _authorLinkedIn,
+                              onPressed: () {
+                                _openLinkedIn('in/$_authorLinkedIn');
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -162,7 +246,7 @@ class _AboutPageState extends State<AboutPage> {
                   Padding(
                     padding: _defaultPadding(),
                     child: Column(children: [
-                      _buildSectionTitle('Contact/Social'),
+                      _buildSectionTitle('Organization Contact/Social'),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -170,13 +254,25 @@ class _AboutPageState extends State<AboutPage> {
                           IconButton(
                             iconSize: 30,
                             icon: const Icon(
-                              Icons.mail_rounded,
+                              SVT.instagram,
                               color: Colors.white,
                             ),
                             splashRadius: 24,
-                            tooltip: _authorEmail,
+                            tooltip: '@$_orgInstagram',
                             onPressed: () {
-                              _sendEmail();
+                              _openInstagram(_orgInstagram);
+                            },
+                          ),
+                          IconButton(
+                            iconSize: 30,
+                            icon: const Icon(
+                              SVT.twitter,
+                              color: Colors.white,
+                            ),
+                            splashRadius: 24,
+                            tooltip: '@$_orgTwitter',
+                            onPressed: () {
+                              _openTwitter(_orgTwitter);
                             },
                           ),
                           IconButton(
@@ -186,9 +282,9 @@ class _AboutPageState extends State<AboutPage> {
                               SVT.github,
                               color: Colors.white,
                             ),
-                            tooltip: _authorGitHub,
+                            tooltip: _orgGitHub,
                             onPressed: () {
-                              _openGitHub();
+                              _openGitHub(_orgGitHub);
                             },
                           ),
                           IconButton(
@@ -198,9 +294,35 @@ class _AboutPageState extends State<AboutPage> {
                               color: Colors.white,
                             ),
                             splashRadius: 24,
-                            tooltip: _authorLinkedIn,
+                            tooltip:
+                                'Liquid Galaxy Project (Google Summer of Code)',
                             onPressed: () {
-                              _openLinkedIn();
+                              _openLinkedIn('company/$_orgLinkedIn');
+                            },
+                          ),
+                          IconButton(
+                            iconSize: 30,
+                            icon: const Icon(
+                              Icons.language_rounded,
+                              color: Colors.white,
+                            ),
+                            splashRadius: 24,
+                            tooltip: _orgWebsite,
+                            onPressed: () {
+                              _openLink('https://$_orgWebsite');
+                            },
+                          ),
+                          IconButton(
+                            iconSize: 24,
+                            icon: const Icon(
+                              SVT.google_play,
+                              color: Colors.white,
+                            ),
+                            splashRadius: 24,
+                            tooltip: 'Liquid Galaxy LAB',
+                            onPressed: () {
+                              _openLink(
+                                  'https://play.google.com/store/apps/developer?id=Liquid+Galaxy+LAB');
                             },
                           ),
                         ],
