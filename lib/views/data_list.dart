@@ -39,7 +39,6 @@ class DataList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 48),
       physics:
           const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       shrinkWrap: true,

@@ -117,9 +117,41 @@ class TransmitterEntity {
     required this.frequencyViolation,
   });
 
+  /// Gets the transmitter type label according to the current [type].
+  String getTypeLabel() {
+    switch (type) {
+      case TransmitterTypeEnum.TRANSMITTER:
+        return 'Transmitter';
+      case TransmitterTypeEnum.TRANSCEIVER:
+        return 'Transceiver';
+      case TransmitterTypeEnum.TRANSPONDER:
+        return 'Transponder';
+    }
+  }
+
+  /// Gets the transmitter service label according to the current [service].
+  String getServiceLabel() {
+    String parsed = service.name.replaceAll('_', ' ').toLowerCase();
+    return '${parsed[0].toUpperCase()}${parsed.substring(1)}';
+  }
+
+  /// Gets the transmitter IARU Coordination label according to the current one.
+  String getIaruLabel() {
+    switch (iaruCoordination) {
+      case IARUCoordinationEnum.IARU_COORDINATED:
+        return 'IARU Coordinated';
+      case IARUCoordinationEnum.IARU_UNCOORDINATED:
+        return 'IARU Uncoordinated';
+      case IARUCoordinationEnum.IARU_DECLINED:
+        return 'IARU Declined';
+      case IARUCoordinationEnum.NA:
+        return 'N/A';
+    }
+  }
+
   /// Gets the transmitter status from the given string.
-  static IARUCoordinationEnum parseIaru(String status) {
-    switch (status.toLowerCase()) {
+  static IARUCoordinationEnum parseIaru(String iaru) {
+    switch (iaru.toLowerCase()) {
       case 'iaru coordinated':
         return IARUCoordinationEnum.IARU_COORDINATED;
       case 'iaru uncoordinated':
@@ -202,30 +234,31 @@ class TransmitterEntity {
   /// Gets a [TransmitterEntity] from the given [map].
   factory TransmitterEntity.fromMap(Map map) {
     return TransmitterEntity(
-        id: map['uuid'],
-        description: map['description'],
-        alive: map['alive'],
-        type: TransmitterEntity.parseType(map['type']),
-        uplinkLow: map['uplink_low'],
-        uplinkHigh: map['uplink_high'],
-        uplinkDrift: map['uplink_drift'],
-        downlinkLow: map['downlink_low'],
-        downlinkHigh: map['downlink_high'],
-        downlinkDrift: map['downlink_drift'],
-        mode: map['mode'],
-        modeId: map['mode_id'],
-        uplinkMode: map['uplink_mode'],
-        invert: map['invert'],
-        baud: map['baud'],
-        satelliteId: map['sat_id'],
-        noradId: map['norad_cat_id'],
-        status: TransmitterEntity.parseStatus(map['status']),
-        updated: map['updated'],
-        citation: map['citation'],
-        service: TransmitterEntity.parseService(map['service']),
-        iaruCoordination: TransmitterEntity.parseIaru(map['iaru_coordination']),
-        iaruCoordinationUrl: map['iaru_coordination_url'],
-        ituNotification: map['itu_notification'],
-        frequencyViolation: map['frequency_violation']);
+      id: map['uuid'],
+      description: map['description'],
+      alive: map['alive'],
+      type: TransmitterEntity.parseType(map['type']),
+      uplinkLow: map['uplink_low'],
+      uplinkHigh: map['uplink_high'],
+      uplinkDrift: map['uplink_drift'],
+      downlinkLow: map['downlink_low'],
+      downlinkHigh: map['downlink_high'],
+      downlinkDrift: map['downlink_drift'],
+      mode: map['mode'],
+      modeId: map['mode_id'],
+      uplinkMode: map['uplink_mode'],
+      invert: map['invert'],
+      baud: map['baud'],
+      satelliteId: map['sat_id'],
+      noradId: map['norad_cat_id'],
+      status: TransmitterEntity.parseStatus(map['status']),
+      updated: map['updated'],
+      citation: map['citation'],
+      service: TransmitterEntity.parseService(map['service']),
+      iaruCoordination: TransmitterEntity.parseIaru(map['iaru_coordination']),
+      iaruCoordinationUrl: map['iaru_coordination_url'],
+      ituNotification: map['itu_notification'],
+      frequencyViolation: map['frequency_violation'],
+    );
   }
 }

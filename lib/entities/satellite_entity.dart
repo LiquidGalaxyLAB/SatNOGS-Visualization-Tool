@@ -135,6 +135,13 @@ class SatelliteEntity {
     }
   }
 
+  /// Gets whether the [website] is a valid URL.
+  bool websiteValid() {
+    final regex = RegExp(
+        'https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)');
+    return regex.hasMatch(website);
+  }
+
   /// Gets the orbit coordinates from the current satellite.
   ///
   /// Returns a [List] of coordinates with [lat], [lng] and [alt].

@@ -6,9 +6,9 @@ class ThemeColors {
   static Color backgroundColor = const Color(0xFF2D2D2D);
 
   static Color primaryColor = const Color(0xFF75DEFF);
-  static Color success = const Color(0xFF4CFA72);
+  static Color success = const Color(0xFF2FDF75);
   static Color warning = const Color(0xFFFFC061);
-  static Color alert = const Color(0xFFFF6161);
+  static Color alert = const Color(0xFFED576B);
   static Color info = const Color(0xFF79B7FF);
   static Color logo = const Color(0xFF8CE3FF);
 
