@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
+import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
 import 'package:satnogs_visualization_tool/enums/satellite_status_enum.dart';
+import 'package:satnogs_visualization_tool/services/tle_service.dart';
 import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/utils/date.dart';
@@ -25,17 +27,22 @@ class SatelliteInfoPage extends StatefulWidget {
 class _SatelliteInfoPageState extends State<SatelliteInfoPage>
     with TickerProviderStateMixin {
   TransmitterService get _transmitterService => GetIt.I<TransmitterService>();
+  TLEService get _tleService => GetIt.I<TLEService>();
 
   late TabController _tabController;
+
   List<TransmitterEntity> _transmitters = [];
+  TLEEntity? _tle;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _setTransmitters();
+    _setTLE();
   }
 
+  /// Loads the satellite transmitters and set the `_transmitters` property.
   void _setTransmitters() async {
     final transmitters = await _transmitterService.getMany(offline: true);
 
@@ -43,6 +50,18 @@ class _SatelliteInfoPageState extends State<SatelliteInfoPage>
       _transmitters = transmitters
           .where((element) => element.satelliteId == widget.satellite.id)
           .toList();
+    });
+  }
+
+  /// Loads the satellite TLE and set the `_tle` property.
+  void _setTLE() async {
+    final tles = await _tleService.getMany(offline: true);
+
+    final matchTLEs =
+        tles.where((element) => element.satelliteId == widget.satellite.id);
+
+    setState(() {
+      _tle = matchTLEs.isNotEmpty ? matchTLEs.toList()[0] : null;
     });
   }
 
@@ -112,8 +131,8 @@ class _SatelliteInfoPageState extends State<SatelliteInfoPage>
               text: 'Transmitters',
             ),
             const Tab(
-              icon: Icon(Icons.bar_chart_rounded),
-              text: 'Data',
+              icon: Icon(Icons.stacked_line_chart_rounded),
+              text: 'TLE',
             ),
           ],
         ),
@@ -123,10 +142,36 @@ class _SatelliteInfoPageState extends State<SatelliteInfoPage>
         children: [
           _buildSatelliteInfo(),
           _buildSatelliteTransmitter(),
-          const Center(
-            child: Text('Under development'),
-          ),
+          _buildSatelliteTLE(),
         ],
+      ),
+    );
+  }
+
+  /// Builds the satellite `TLE` page.
+  Widget _buildSatelliteTLE() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildInfoSection(
+              'Latest Two-Line Element (TLE)',
+              _tle == null
+                  ? 'Not available'
+                  : '${_tle!.line0}\r\n${_tle!.line1}\r\n${_tle!.line2}',
+            ),
+            _buildInfoSection(
+              'TLE Source',
+              _tle == null ? 'Not available' : _tle!.source,
+            ),
+            _buildInfoSection(
+              'TLE Updated at',
+              _tle == null ? 'Not available' : parseDateString(_tle!.updated),
+            ),
+          ],
+        ),
       ),
     );
   }
