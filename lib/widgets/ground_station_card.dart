@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
 import 'package:satnogs_visualization_tool/enums/ground_station_status_enum.dart';
+import 'package:satnogs_visualization_tool/screens/ground_station_info.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 
 class GroundStationCard extends StatefulWidget {
@@ -37,7 +38,22 @@ class _GroundStationCardState extends State<GroundStationCard> {
 
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Container(
+    return ElevatedButton(
+      onPressed: () {
+        if (widget.disabled) {
+          return;
+        }
+
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) =>
+              GroundStationInfoPage(groundStation: widget.groundStation),
+        ));
+      },
+      style: ButtonStyle(
+        padding: MaterialStateProperty.all(const EdgeInsets.all(0)),
+        elevation: MaterialStateProperty.all(0),
+      ),
+      child: Container(
         width: screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
         decoration: BoxDecoration(
             color: ThemeColors.card.withOpacity(0.5),
@@ -190,6 +206,8 @@ class _GroundStationCardState extends State<GroundStationCard> {
                   : Container(),
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
