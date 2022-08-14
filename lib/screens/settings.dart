@@ -39,6 +39,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   bool _clearingKml = false;
   bool _rebooting = false;
+  bool _relaunching = false;
   bool _shuttingDown = false;
 
   Timer? _timer;
@@ -384,7 +385,25 @@ class _SettingsPageState extends State<SettingsPage>
               loading: _clearingKml,
             ),
             _buildLGTaskButton(
-              'Reboot/Relaunch',
+              'Relaunch',
+              Icons.reset_tv_rounded,
+              () async {
+                setState(() {
+                  _relaunching = true;
+                });
+
+                try {
+                  await _lgService.relaunch();
+                } finally {
+                  setState(() {
+                    _relaunching = false;
+                  });
+                }
+              },
+              loading: _relaunching,
+            ),
+            _buildLGTaskButton(
+              'Reboot',
               Icons.restart_alt_rounded,
               () async {
                 setState(() {

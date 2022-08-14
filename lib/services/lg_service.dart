@@ -55,6 +55,34 @@ class LGService {
     }
   }
 
+  /// Relaunches the Liquid Galaxy system.
+  Future<void> relaunch() async {
+    final pw = _sshService.client.passwordOrKey;
+
+    for (var i = screenAmount; i >= 1; i--) {
+      try {
+        final relaunchCommand = """RELAUNCH_CMD="\\
+if [ -f /etc/init/lxdm.conf ]; then
+  export SERVICE=lxdm
+elif [ -f /etc/init/lightdm.conf ]; then
+  export SERVICE=lightdm
+else
+  exit 1
+fi
+if  [[ \\\$(service \\\$SERVICE status) =~ 'stop' ]]; then
+  service \\\${SERVICE} start
+else
+  echo lq | sudo -S service \\\${SERVICE} restart
+fi
+" && sshpass -p $pw ssh -x -t lg@lg$i "\$RELAUNCH_CMD\"""";
+        await _sshService.execute(relaunchCommand);
+      } catch (e) {
+        // ignore: avoid_print
+        print(e);
+      }
+    }
+  }
+
   /// Shuts down the Liquid Galaxy system.
   Future<void> shutdown() async {
     final pw = _sshService.client.passwordOrKey;
@@ -62,7 +90,7 @@ class LGService {
     for (var i = screenAmount; i >= 1; i--) {
       try {
         await _sshService.execute(
-            'sshpass -p $pw ssh -t lg$i "echo $pw | sudo -S shutdown now"');
+            'sshpass -p $pw ssh -t lg$i "echo $pw | sudo -S poweroff"');
       } catch (e) {
         // ignore: avoid_print
         print(e);
