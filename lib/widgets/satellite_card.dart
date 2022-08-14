@@ -62,6 +62,7 @@ class _SatelliteCardState extends State<SatelliteCard> {
       },
       style: ButtonStyle(
         padding: MaterialStateProperty.all(const EdgeInsets.all(0)),
+        elevation: MaterialStateProperty.all(0),
       ),
       child: Container(
           width: screenWidth >= 768 ? screenWidth / 2 - 24 : 360,
