@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
-import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/line_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/orbit_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/placemark_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/point_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/tour_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
 import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
@@ -62,82 +62,95 @@ class SatelliteService {
     return res.map((s) => SatelliteEntity.fromMap(s)).toList();
   }
 
-  /// Builds and returns a satellite `KML` [String] according to the given
-  /// [satellite], [tle] and [transmitters].
-  KMLEntity buildKml(
+  /// Builds and returns a satellite `Placemark` entity according to the given
+  /// [satellite], [tle], [transmitters] and more.
+  PlacemarkEntity buildPlacemark(
     SatelliteEntity satellite,
     TLEEntity tle,
     List<TransmitterEntity> transmitters,
-  ) {
-    final coord = tle.read();
+    bool balloon,
+    double orbitPeriod, {
+    LookAtEntity? lookAt,
+    bool updatePosition = true,
+  }) {
+    LookAtEntity lookAtObj;
 
-    final lookAt = LookAtEntity(
-      lng: coord['lng']!,
-      lat: coord['lat']!,
-      altitude: coord['alt']! * 1,
-      range: '400000',
-      tilt: '60',
-      heading: '0',
-    );
+    if (lookAt == null) {
+      final coord = tle.read();
+
+      lookAtObj = LookAtEntity(
+        lng: coord['lng']!,
+        lat: coord['lat']!,
+        altitude: coord['alt']!,
+        range: '4000000',
+        tilt: '60',
+        heading: '0',
+      );
+    } else {
+      lookAtObj = lookAt;
+    }
 
     final point = PointEntity(
-      lat: lookAt.lat,
-      lng: lookAt.lng,
-      altitude: lookAt.altitude,
+      lat: lookAtObj.lat,
+      lng: lookAtObj.lng,
+      altitude: lookAtObj.altitude,
     );
 
-    final placemark = PlacemarkEntity(
+    satellite.tle = tle;
+
+    final coordinates = satellite.getOrbitCoordinates(step: orbitPeriod);
+
+    final tour = TourEntity(
+      name: 'SimulationTour',
+      placemarkId: 'p-${satellite.id}',
+      initialCoordinate: {
+        'lat': point.lat,
+        'lng': point.lng,
+        'altitude': point.altitude,
+      },
+      coordinates: coordinates,
+    );
+
+    return PlacemarkEntity(
       id: satellite.id,
       name: '${satellite.name} (${satellite.getStatusLabel().toUpperCase()})',
-      lookAt: lookAt,
+      lookAt: updatePosition ? lookAtObj : null,
       point: point,
       description: satellite.citation,
-      balloonContent: satellite.balloonContent(transmitters.length),
+      balloonContent:
+          balloon ? satellite.balloonContent(transmitters.length) : '',
       icon: 'satellite.png',
       line: LineEntity(
         id: satellite.id,
         altitudeMode: 'absolute',
-        coordinates: LineEntity.generateMockedLine(
-          point.lng,
-          point.lat,
-          point.altitude,
-        ),
+        coordinates: coordinates,
       ),
-    );
-
-    // final screenOverlay = ScreenOverlayEntity(
-    //   name: satellite.name,
-    //   icon: 'http://lg1:81/satellite.png',
-    //   overlayX: 1,
-    //   overlayY: 1,
-    //   screenX: 1,
-    //   screenY: 1,
-    //   sizeX: 200,
-    //   sizeY: 300,
-    // );
-
-    return KMLEntity(
-      name: satellite.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
-      content: placemark.tag,
-      // screenOverlay: screenOverlay.tag,
+      tour: tour,
     );
   }
 
   /// Builds an `orbit` KML based on the given [satellite] and [tle].
   ///
   /// Returns a [String] that represents the `orbit` KML.
-  String buildOrbit(SatelliteEntity satellite, TLEEntity tle) {
-    final coord = tle.read();
+  String buildOrbit(SatelliteEntity satellite, TLEEntity tle,
+      {LookAtEntity? lookAt}) {
+    LookAtEntity lookAtObj;
 
-    final lookAt = LookAtEntity(
-      lng: coord['lng']!,
-      lat: coord['lat']!,
-      altitude: coord['alt']! * 1,
-      range: '400000',
-      tilt: '60',
-      heading: '0',
-    );
+    if (lookAt == null) {
+      final coord = tle.read();
 
-    return OrbitEntity.buildOrbit(OrbitEntity.tag(lookAt));
+      lookAtObj = LookAtEntity(
+        lng: coord['lng']!,
+        lat: coord['lat']!,
+        altitude: coord['alt']!,
+        range: '4000000',
+        tilt: '60',
+        heading: '0',
+      );
+    } else {
+      lookAtObj = lookAt;
+    }
+
+    return OrbitEntity.buildOrbit(OrbitEntity.tag(lookAtObj));
   }
 }

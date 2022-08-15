@@ -5,19 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
+import 'package:satnogs_visualization_tool/entities/kml/placemark_entity.dart';
 import 'package:satnogs_visualization_tool/entities/satellite_entity.dart';
 import 'package:satnogs_visualization_tool/entities/tle_entity.dart';
 import 'package:satnogs_visualization_tool/entities/transmitter_entity.dart';
 import 'package:satnogs_visualization_tool/enums/ground_station_status_enum.dart';
 import 'package:satnogs_visualization_tool/enums/satellite_status_enum.dart';
+import 'package:satnogs_visualization_tool/screens/about.dart';
 import 'package:satnogs_visualization_tool/screens/settings.dart';
 import 'package:satnogs_visualization_tool/services/ground_station_service.dart';
 import 'package:satnogs_visualization_tool/services/lg_service.dart';
 import 'package:satnogs_visualization_tool/services/satellite_service.dart';
+import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/services/tle_service.dart';
 import 'package:satnogs_visualization_tool/services/transmitter_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
+import 'package:satnogs_visualization_tool/utils/snackbar.dart';
 import 'package:satnogs_visualization_tool/views/data_list.dart';
 import 'package:satnogs_visualization_tool/widgets/data_amount.dart';
 import 'package:satnogs_visualization_tool/widgets/error_dialog.dart';
@@ -35,6 +40,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  SSHService get _sshService => GetIt.I<SSHService>();
   LGService get _lgService => GetIt.I<LGService>();
   SatelliteService get _satelliteService => GetIt.I<SatelliteService>();
   TLEService get _tleService => GetIt.I<TLEService>();
@@ -63,9 +69,12 @@ class _HomePageState extends State<HomePage> {
   bool _loadingTransmitters = false;
   bool _loadingStations = false;
   bool _uploading = false;
+  bool _cleaning = false;
+  bool _satelliteBalloonVisible = true;
 
   String? _selectedSatellite;
   int? _selectedStation;
+  PlacemarkEntity? _satellitePlacemark;
 
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -82,7 +91,6 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     _initConnectivity();
-    _setSSH();
 
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
@@ -129,9 +137,6 @@ class _HomePageState extends State<HomePage> {
           result == ConnectivityResult.wifi;
     });
   }
-
-  /// Sets the SSH client into SSH service with the local settings data.
-  void _setSSH() {}
 
   /// Loads all satellites from the local storage or database based on the
   /// [synchronize] param.
@@ -325,110 +330,299 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Views a `satellite` into the Google Earth.
-  void _viewSatellite(SatelliteEntity satellite) async {
+  void _viewSatellite(SatelliteEntity satellite, bool showBalloon,
+      {double orbitPeriod = 2.8, bool updatePosition = true}) async {
     if (_uploading) {
       return;
     }
 
-    print('view in galaxy: ${satellite.name}');
-
-    setState(() {
-      _uploading = true;
-    });
-
-    final matchTLEs =
-        _tles.where((element) => element.satelliteId == satellite.id);
-    TLEEntity? tle = matchTLEs.isNotEmpty ? matchTLEs.toList()[0] : null;
-
-    if (tle == null) {
+    try {
       setState(() {
-        _uploading = false;
-        _selectedSatellite = null;
+        _uploading = true;
+      });
+
+      final timer = Timer(const Duration(seconds: 5), () {
+        setState(() {
+          _satelliteBalloonVisible = true;
+          _selectedSatellite = null;
+          _satellitePlacemark = null;
+          _selectedStation = null;
+          _uploading = false;
+        });
+
+        throw Exception('connection-timed-out');
+      });
+
+      final result = await _sshService.connect();
+      timer.cancel();
+
+      if (result != 'session_connected') {
+        setState(() {
+          _uploading = false;
+        });
+
+        return showSnackbar(context, 'Connection failed');
+      }
+
+      final matchTLEs =
+          _tles.where((element) => element.satelliteId == satellite.id);
+      TLEEntity? tle = matchTLEs.isNotEmpty ? matchTLEs.toList()[0] : null;
+
+      if (tle == null) {
+        setState(() {
+          _uploading = false;
+          _satelliteBalloonVisible = true;
+          _satellitePlacemark = null;
+          _selectedSatellite = null;
+          _satelliteBalloonVisible = true;
+          _selectedStation = null;
+        });
+
+        return _showErrorDialog('No TLE available for this satellite!');
+      }
+
+      setState(() {
+        _selectedSatellite = satellite.id;
         _selectedStation = null;
       });
 
-      return _showErrorDialog('No TLE available for this satellite!');
+      final tleCoord = tle.read();
+
+      final transmitters = _transmitters
+          .where((element) => element.satelliteId == satellite.id)
+          .toList();
+
+      final placemark = _satelliteService.buildPlacemark(
+        satellite,
+        tle,
+        transmitters,
+        showBalloon,
+        orbitPeriod,
+        lookAt: _satellitePlacemark != null && !updatePosition
+            ? _satellitePlacemark!.lookAt
+            : null,
+        updatePosition: updatePosition,
+      );
+
+      setState(() {
+        _satellitePlacemark = placemark;
+      });
+
+      final kml = KMLEntity(
+        name: satellite.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
+        content: placemark.tag,
+      );
+
+      await _lgService.sendKml(
+        kml,
+        images: [
+          {
+            'name': 'satellite.png',
+            'path': 'assets/images/satellite.png',
+          }
+        ],
+      );
+
+      if (_lgService.balloonScreen == _lgService.logoScreen) {
+        await _lgService.setLogos(
+          name: 'SVT-logos-balloon',
+          content: '''
+            <name>Logos-Balloon</name>
+            ${placemark.balloonOnlyTag}
+          ''',
+        );
+      } else {
+        final kmlBalloon = KMLEntity(
+          name: 'SVT-balloon',
+          content: placemark.balloonOnlyTag,
+        );
+
+        await _lgService.sendKMLToSlave(
+          _lgService.balloonScreen,
+          kmlBalloon.body,
+        );
+      }
+
+      if (updatePosition) {
+        await _lgService.flyTo(LookAtEntity(
+          lat: tleCoord['lat']!,
+          lng: tleCoord['lng']!,
+          altitude: tleCoord['alt']!,
+          range: '4000000',
+          tilt: '60',
+          heading: '0',
+        ));
+      }
+
+      final orbit = _satelliteService.buildOrbit(satellite, tle);
+      await _lgService.sendTour(orbit, 'Orbit');
+    } on Exception catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } finally {
+      setState(() {
+        _uploading = false;
+      });
     }
-
-    final tleCoord = tle.read();
-
-    final transmitters = _transmitters
-        .where((element) => element.satelliteId == satellite.id)
-        .toList();
-
-    final kml = _satelliteService.buildKml(satellite, tle, transmitters);
-    // await _lgService.sendMasterKml(kml);
-
-    await _lgService.sendKml(
-      kml,
-      images: [
-        {
-          'name': 'satellite.png',
-          'path': 'assets/images/satellite.png',
-        }
-      ],
-    );
-
-    await _lgService.flyTo(LookAtEntity(
-      lat: tleCoord['lat']!,
-      lng: tleCoord['lng']!,
-      altitude: tleCoord['alt']! * 1,
-      range: '400000',
-      tilt: '60',
-      heading: '0',
-    ));
-
-    final orbit = _satelliteService.buildOrbit(satellite, tle);
-    await _lgService.sendTour(orbit, 'Orbit');
-
-    setState(() {
-      _uploading = false;
-    });
   }
 
   /// Views a `ground station` into the Google Earth.
-  void _viewGroundStation(GroundStationEntity station) async {
+  void _viewGroundStation(
+    GroundStationEntity station,
+    bool showBalloon, {
+    bool updatePosition = true,
+  }) async {
     if (_uploading) {
       return;
     }
 
-    print('view in galaxy: ${station.name}');
+    try {
+      setState(() {
+        _uploading = true;
+      });
 
-    Map<String, dynamic>? extraData;
+      final timer = Timer(const Duration(seconds: 5), () {
+        setState(() {
+          _selectedSatellite = null;
+          _satellitePlacemark = null;
+          _satelliteBalloonVisible = true;
+          _selectedStation = null;
+          _uploading = false;
+          _satelliteBalloonVisible = true;
+        });
 
-    if (_online) {
-      extraData = await _groundStationService.getOne(station.id);
+        throw Exception('connection-timed-out');
+      });
+
+      final result = await _sshService.connect();
+      timer.cancel();
+
+      if (result != 'session_connected') {
+        setState(() {
+          _uploading = false;
+        });
+
+        return showSnackbar(context, 'Connection failed');
+      }
+
+      Map<String, dynamic>? extraData;
+
+      if (_online) {
+        extraData = await _groundStationService.getOne(station.id);
+      }
+
+      setState(() {
+        _selectedSatellite = null;
+        _satellitePlacemark = null;
+        _satelliteBalloonVisible = true;
+        _selectedStation = station.id;
+      });
+
+      final placemark = _groundStationService.buildPlacemark(
+        station,
+        showBalloon,
+        extraData: extraData,
+        updatePosition: updatePosition,
+      );
+
+      final kml = KMLEntity(
+        name: station.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
+        content: placemark.tag,
+      );
+
+      await _lgService.sendKml(
+        kml,
+        images: [
+          {
+            'name': 'station.png',
+            'path': 'assets/images/station.png',
+          }
+        ],
+      );
+
+      if (_lgService.balloonScreen == _lgService.logoScreen) {
+        await _lgService.setLogos(
+          name: 'SVT-logos-balloon',
+          content: '''
+            <name>Logos-Balloon</name>
+            ${placemark.balloonOnlyTag}
+          ''',
+        );
+      } else {
+        final kmlBalloon = KMLEntity(
+          name: 'SVT-balloon',
+          content: placemark.balloonOnlyTag,
+        );
+
+        await _lgService.sendKMLToSlave(
+          _lgService.balloonScreen,
+          kmlBalloon.body,
+        );
+      }
+
+      if (updatePosition) {
+        await _lgService.flyTo(LookAtEntity(
+          lat: station.lat,
+          lng: station.lng,
+          range: '1500',
+          tilt: '60',
+          heading: '0',
+        ));
+      }
+
+      final orbit = _groundStationService.buildOrbit(station);
+      await _lgService.sendTour(orbit, 'Orbit');
+    } on Exception catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } finally {
+      setState(() {
+        _uploading = false;
+      });
     }
+  }
 
-    setState(() {
-      _uploading = true;
-    });
+  /// Clears the current KML and keeps the logos.
+  void _clearKml() async {
+    try {
+      setState(() {
+        _cleaning = true;
+      });
 
-    final kml = _groundStationService.buildKml(station, extraData: extraData);
-    await _lgService.sendKml(
-      kml,
-      images: [
-        {
-          'name': 'station.png',
-          'path': 'assets/images/station.png',
-        }
-      ],
-    );
+      final timer = Timer(const Duration(seconds: 5), () {
+        setState(() {
+          _cleaning = false;
+        });
 
-    await _lgService.flyTo(LookAtEntity(
-      lat: station.lat,
-      lng: station.lng,
-      range: '1500',
-      tilt: '60',
-      heading: '0',
-    ));
+        throw Exception('connection-timed-out');
+      });
 
-    final orbit = _groundStationService.buildOrbit(station);
-    await _lgService.sendTour(orbit, 'Orbit');
+      final result = await _sshService.connect();
+      timer.cancel();
 
-    setState(() {
-      _uploading = false;
-    });
+      if (result != 'session_connected') {
+        return showSnackbar(context, 'Connection failed');
+      }
+
+      setState(() {
+        _satelliteBalloonVisible = true;
+        _selectedSatellite = null;
+        _satellitePlacemark = null;
+        _selectedStation = null;
+      });
+
+      await _lgService.clearKml();
+    } on Exception catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } catch (_) {
+      showSnackbar(context, 'Connection failed');
+    } finally {
+      setState(() {
+        _cleaning = false;
+      });
+    }
   }
 
   @override
@@ -440,61 +634,84 @@ class _HomePageState extends State<HomePage> {
         title: const Text('SatNOGS Visualization Tool'),
         shadowColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         actions: [
           TextButton.icon(
-            icon:
-                const Icon(Icons.cleaning_services_rounded, color: Colors.grey),
-            label: const Text("CLEAR",
-                style:
-                    TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+            icon: const Icon(
+              Icons.cleaning_services_rounded,
+              color: Colors.grey,
+            ),
+            label: Text(
+              _cleaning ? 'CLEANING' : 'CLEAR',
+              style: TextStyle(
+                color: _cleaning ? Colors.grey.withOpacity(0.8) : Colors.grey,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             onPressed: () {
-              setState(() {
-                _selectedSatellite = null;
-                _selectedStation = null;
-              });
-
-              _lgService.clearKml();
+              _clearKml();
             },
           ),
           TextButton.icon(
-              icon: Icon(
-                  !_online
-                      ? Icons.sync_problem_rounded
-                      : Icons.cloud_sync_rounded,
+            icon: Icon(
+              !_online ? Icons.sync_problem_rounded : Icons.cloud_sync_rounded,
+              color: !_online
+                  ? ThemeColors.alert
+                  : _loading
+                      ? Colors.grey
+                      : ThemeColors.warning,
+            ),
+            label: Text(
+              _loading ? 'SYNCING' : 'SYNC',
+              style: TextStyle(
                   color: !_online
                       ? ThemeColors.alert
                       : _loading
                           ? Colors.grey
-                          : ThemeColors.warning),
-              label: Text(_loading ? 'SYNCING' : 'SYNC',
-                  style: TextStyle(
-                      color: !_online
-                          ? ThemeColors.alert
-                          : _loading
-                              ? Colors.grey
-                              : ThemeColors.warning,
-                      fontWeight: FontWeight.bold)),
-              onPressed: () {
-                if (_loading || !_online) {
-                  return;
-                }
+                          : ThemeColors.warning,
+                  fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              if (_loading || !_online) {
+                return;
+              }
 
-                _loadSatellites(true);
-                _loadTLEs(true);
-                _loadGroundStations(true);
-                _loadTransmitters(true);
-              }),
+              _loadSatellites(true);
+              _loadTLEs(true);
+              _loadGroundStations(true);
+              _loadTransmitters(true);
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.info_outline_rounded,
+              color: ThemeColors.info,
+            ),
+            splashRadius: 24,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AboutPage(),
+                ),
+              );
+            },
+          ),
           Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: IconButton(
-                  icon: const Icon(Icons.settings_rounded),
-                  splashRadius: 24,
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SettingsPage()));
-                  }))
+            padding: const EdgeInsets.only(right: 4),
+            child: IconButton(
+              icon: const Icon(Icons.settings_rounded),
+              splashRadius: 24,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsPage(),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
       body: Column(
@@ -561,6 +778,27 @@ class _HomePageState extends State<HomePage> {
                                     items: _filteredSatellites,
                                     render: 'satellite',
                                     selected: {'satellite': _selectedSatellite},
+                                    disabled: _uploading,
+                                    onSatelliteOrbitPeriodChange:
+                                        (satellite, value) {
+                                      _viewSatellite(
+                                        satellite,
+                                        _satelliteBalloonVisible,
+                                        orbitPeriod: value,
+                                        updatePosition: false,
+                                      );
+                                    },
+                                    onSatelliteBalloonToggle:
+                                        (satellite, value) {
+                                      setState(() {
+                                        _satelliteBalloonVisible = value;
+                                      });
+                                      _viewSatellite(
+                                        satellite,
+                                        value,
+                                        updatePosition: false,
+                                      );
+                                    },
                                     onSatelliteOrbit: (value) {
                                       if (value) {
                                         _lgService.startTour('Orbit');
@@ -568,13 +806,15 @@ class _HomePageState extends State<HomePage> {
                                         _lgService.stopTour();
                                       }
                                     },
+                                    onSatelliteSimulate: (value) {
+                                      if (value) {
+                                        _lgService.startTour('SimulationTour');
+                                      } else {
+                                        _lgService.stopTour();
+                                      }
+                                    },
                                     onSatelliteView: (satellite) {
-                                      setState(() {
-                                        _selectedSatellite = satellite.id;
-                                        _selectedStation = null;
-                                      });
-
-                                      _viewSatellite(satellite);
+                                      _viewSatellite(satellite, true);
                                     },
                                   ),
                           ))
@@ -626,6 +866,15 @@ class _HomePageState extends State<HomePage> {
                                     items: _filteredGroundStations,
                                     render: 'station',
                                     selected: {'station': _selectedStation},
+                                    disabled: _uploading,
+                                    onStationBalloonToggle:
+                                        (station, value) async {
+                                      _viewGroundStation(
+                                        station,
+                                        value,
+                                        updatePosition: false,
+                                      );
+                                    },
                                     onStationOrbit: (value) {
                                       if (value) {
                                         _lgService.startTour('Orbit');
@@ -634,12 +883,7 @@ class _HomePageState extends State<HomePage> {
                                       }
                                     },
                                     onStationView: (station) {
-                                      setState(() {
-                                        _selectedSatellite = null;
-                                        _selectedStation = station.id;
-                                      });
-
-                                      _viewGroundStation(station);
+                                      _viewGroundStation(station, true);
                                     },
                                   ),
                           ))
@@ -650,13 +894,6 @@ class _HomePageState extends State<HomePage> {
           ))
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   tooltip: 'View satellite by NORAD id',
-      //   child: const Icon(Icons.manage_search_rounded, size: 28),
-      //   backgroundColor: ThemeColors.primaryColor,
-      //   foregroundColor: ThemeColors.backgroundColor,
-      //   onPressed: () {},
-      // ),
     );
   }
 

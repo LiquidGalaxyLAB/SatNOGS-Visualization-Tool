@@ -54,6 +54,7 @@ class SatelliteEntity {
   /// Property that defines a `list of associated satellites ids`.
   List<dynamic> associatedSatellites;
 
+  /// Property that defines the satellite linked `TLE`.
   TLEEntity? tle;
 
   SatelliteEntity({
@@ -132,6 +133,40 @@ class SatelliteEntity {
       case SatelliteStatusEnum.RE_ENTERED:
         return 'Re-entered';
     }
+  }
+
+  /// Gets whether the [website] is a valid URL.
+  bool websiteValid() {
+    final regex = RegExp(
+        'https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)');
+    return regex.hasMatch(website);
+  }
+
+  /// Gets the orbit coordinates from the current satellite.
+  ///
+  /// Returns a [List] of coordinates with [lat], [lng] and [alt].
+  List<Map<String, double>> getOrbitCoordinates({double step = 3}) {
+    if (tle == null) {
+      return [];
+    }
+
+    List<Map<String, double>> coords = [];
+
+    double displacement = 3.3 - step / 361;
+    double spot = 0;
+
+    while (spot < 361) {
+      displacement += step / 361;
+      final tleCoords = tle!.read(displacement: displacement / 24.0);
+      coords.add({
+        'lat': tleCoords['lat']!,
+        'lng': tleCoords['lng']!,
+        'altitude': tleCoords['alt']!
+      });
+      spot++;
+    }
+
+    return coords;
   }
 
   /// Converts the current [SatelliteEntity] to a [Map].

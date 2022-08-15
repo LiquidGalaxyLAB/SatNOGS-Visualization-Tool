@@ -12,6 +12,9 @@ class SSHService {
   /// Property that defines the SSH client instance.
   late SSHClient _client;
 
+  /// Property that defines the SSH client instance.
+  SSHClient get client => _client;
+
   /// Sets a client with the given [ssh] info.
   void setClient(SSHEntity ssh) {
     _client = SSHClient(
@@ -34,14 +37,17 @@ class SSHService {
 
   /// Connects to the current client, executes a command into it and then
   /// disconnects.
-  Future<void> execute(String command) async {
+  Future<String?> execute(String command) async {
     String result = await connect();
 
+    String? execResult;
+
     if (result == 'session_connected') {
-      await _client.execute(command);
+      execResult = await _client.execute(command);
     }
 
     await disconnect();
+    return execResult;
   }
 
   /// Connects to a machine using the current client.

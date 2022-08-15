@@ -8,22 +8,22 @@ class ScreenOverlayEntity {
   String icon;
 
   /// Property that defines the screen overlay `overlayX`.
-  int overlayX;
+  double overlayX;
 
   /// Property that defines the screen overlay `overlayY`.
-  int overlayY;
+  double overlayY;
 
   /// Property that defines the screen overlay `screenX`.
-  int screenX;
+  double screenX;
 
   /// Property that defines the screen overlay `screenY`.
-  int screenY;
+  double screenY;
 
   /// Property that defines the screen overlay `sizeX`.
-  int sizeX;
+  double sizeX;
 
   /// Property that defines the screen overlay `sizeY`.
-  int sizeY;
+  double sizeY;
 
   ScreenOverlayEntity({
     required this.name,
@@ -69,7 +69,7 @@ class ScreenOverlayEntity {
       <ScreenOverlay>
         <name>$name</name>
         <Icon>
-          <![CDATA[$icon]]>
+          <href>$icon</href>
         </Icon>
         <color>ffffffff</color>
         <overlayXY x="$overlayX" y="$overlayY" xunits="fraction" yunits="fraction"/>
@@ -78,4 +78,18 @@ class ScreenOverlayEntity {
         <size x="$sizeX" y="$sizeY" xunits="pixels" yunits="pixels"/>
       </ScreenOverlay>
     ''';
+
+  /// Generates a [ScreenOverlayEntity] with the logos data in it.
+  factory ScreenOverlayEntity.logos() {
+    return ScreenOverlayEntity(
+      name: 'LogoSO',
+      icon: 'https://i.imgur.com/p3uiWAy.png',
+      overlayX: 0,
+      overlayY: 1,
+      screenX: 0.02,
+      screenY: 0.95,
+      sizeX: 500,
+      sizeY: 500,
+    );
+  }
 }

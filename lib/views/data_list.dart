@@ -11,9 +11,14 @@ class DataList extends StatelessWidget {
     required this.render,
     required this.selected,
     this.onSatelliteOrbit,
-    this.onStationOrbit,
     this.onSatelliteView,
+    this.onSatelliteSimulate,
+    this.onSatelliteBalloonToggle,
+    this.onSatelliteOrbitPeriodChange,
+    this.onStationOrbit,
     this.onStationView,
+    this.onStationBalloonToggle,
+    this.disabled,
   }) : super(key: key);
 
   final List<dynamic> items;
@@ -21,15 +26,19 @@ class DataList extends StatelessWidget {
   final Map<String, dynamic> selected;
 
   final Function(bool)? onSatelliteOrbit;
-  final Function(bool)? onStationOrbit;
-
+  final Function(bool)? onSatelliteSimulate;
   final Function(SatelliteEntity)? onSatelliteView;
+  final Function(SatelliteEntity, bool)? onSatelliteBalloonToggle;
+  final Function(SatelliteEntity, double)? onSatelliteOrbitPeriodChange;
+  final bool? disabled;
+
+  final Function(bool)? onStationOrbit;
+  final Function(GroundStationEntity, bool)? onStationBalloonToggle;
   final Function(GroundStationEntity)? onStationView;
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 48),
       physics:
           const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       shrinkWrap: true,
@@ -41,25 +50,35 @@ class DataList extends StatelessWidget {
               ? SatelliteCard(
                   satellite: items[index],
                   selected: items[index].id == selected['satellite'],
+                  disabled: disabled ?? false,
+                  onOrbitPeriodChange: (value) {
+                    onSatelliteOrbitPeriodChange!(items[index], value);
+                  },
+                  onBalloonToggle: (value) {
+                    onSatelliteBalloonToggle!(items[index], value);
+                  },
                   onOrbit: (value) {
                     onSatelliteOrbit!(value);
                   },
+                  onSimulate: (value) {
+                    onSatelliteSimulate!(value);
+                  },
                   onView: (satellite) {
-                    if (onSatelliteView != null) {
-                      onSatelliteView!(satellite);
-                    }
+                    onSatelliteView!(satellite);
                   },
                 )
               : GroundStationCard(
                   groundStation: items[index],
                   selected: items[index].id == selected['station'],
+                  disabled: disabled ?? false,
+                  onBalloonToggle: (value) {
+                    onStationBalloonToggle!(items[index], value);
+                  },
                   onOrbit: (value) {
                     onStationOrbit!(value);
                   },
                   onView: (station) {
-                    if (onStationView != null) {
-                      onStationView!(station);
-                    }
+                    onStationView!(station);
                   },
                 ),
         );

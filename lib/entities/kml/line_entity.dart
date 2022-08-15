@@ -100,6 +100,16 @@ class LineEntity {
     return coords;
   }
 
+  /// Returns a [Map] from the current [LineEntity].
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'coordinates': coordinates,
+      'altitudeMode': altitudeMode,
+      'drawOrder': drawOrder,
+    };
+  }
+
   /// Returns a [LineEntity] from the given [map].
   factory LineEntity.fromMap(Map<String, dynamic> map) {
     return LineEntity(
@@ -108,33 +118,5 @@ class LineEntity {
       altitudeMode: map['altitudeMode'],
       drawOrder: map['drawOrder'],
     );
-  }
-
-  // TODO: remove this method
-  static List<Map<String, double>> generateMockedLine(lng, lat, altitude) {
-    List<Map<String, double>> coords = [
-      {
-        'lng': lng,
-        'lat': lat,
-        'altitude': altitude,
-      }
-    ];
-
-    double spot = 0;
-
-    while (spot < 361) {
-      coords.add({
-        'lng': lng - spot < -180 ? lng - spot + 360 : lng - spot,
-        'lat': lat,
-        'altitude': altitude,
-      });
-
-      spot++;
-    }
-
-    print(coords[0]);
-    print(coords[coords.length - 1]);
-
-    return coords;
   }
 }

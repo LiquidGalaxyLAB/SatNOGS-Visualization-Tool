@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 import 'package:html/dom.dart';
 import 'package:http/http.dart' as http;
 import 'package:satnogs_visualization_tool/entities/ground_station_entity.dart';
-import 'package:satnogs_visualization_tool/entities/kml/kml_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/line_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/look_at_entity.dart';
 import 'package:satnogs_visualization_tool/entities/kml/orbit_entity.dart';
@@ -92,11 +91,13 @@ class GroundStationService {
     return res.map((gs) => GroundStationEntity.fromMap(gs)).toList();
   }
 
-  /// Builds and returns a satellite `KML` [String] according to the given
-  /// [station].
-  KMLEntity buildKml(
-    GroundStationEntity station, {
+  /// Builds and returns a satellite `Placemark` entity according to the given
+  /// [station] and other params.
+  PlacemarkEntity buildPlacemark(
+    GroundStationEntity station,
+    bool balloon, {
     Map<String, dynamic>? extraData,
+    bool updatePosition = true,
   }) {
     final lookAt = LookAtEntity(
       lng: station.lng,
@@ -112,32 +113,18 @@ class GroundStationService {
       altitude: lookAt.altitude,
     );
 
-    final placemark = PlacemarkEntity(
+    return PlacemarkEntity(
       id: station.id.toString(),
       name: '${station.name} (${station.getStatusLabel().toUpperCase()})',
-      lookAt: lookAt,
+      lookAt: updatePosition ? lookAt : null,
       point: point,
       description: '',
+      viewOrbit: false,
+      scale: 2.0,
       balloonContent:
-          extraData != null ? station.balloonContent(extraData) : '',
+          extraData != null && balloon ? station.balloonContent(extraData) : '',
       icon: 'station.png',
       line: LineEntity(id: station.id.toString(), coordinates: []),
-    );
-
-    // final screenOverlay = ScreenOverlayEntity(
-    //   name: satellite.name,
-    //   icon: 'http://lg1:81/satellite.png',
-    //   overlayX: 1,
-    //   overlayY: 1,
-    //   screenX: 1,
-    //   screenY: 1,
-    //   sizeX: 200,
-    //   sizeY: 300,
-    // );
-
-    return KMLEntity(
-      name: station.name.replaceAll(RegExp(r'[^a-zA-Z0-9]'), ''),
-      content: placemark.tag,
     );
   }
 
