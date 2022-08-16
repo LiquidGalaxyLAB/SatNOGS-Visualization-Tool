@@ -14,6 +14,7 @@
 - [Connecting to the Liquid Galaxy](#connecting-to-the-liquid-galaxy)
 - [Setting up the rig](#setting-up-the-rig)
 - [License](#license)
+- [Privacy Policy and Terms & Conditions](#privacy-policy-and-terms--conditions)
 
 ### About
 
