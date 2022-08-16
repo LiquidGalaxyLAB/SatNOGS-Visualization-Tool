@@ -44,7 +44,7 @@ $ flutter run --no-sound-null-safety
 
 ### Building the app
 
-In order to have a installed version of the app, you may [download the APK](https://github.com/LiquidGalaxyLAB/SatNOGS-Visualization-Tool/tree/develop/releases) in this repository or run the command below:
+In order to have a installed version of the app, you may [download the APK](https://github.com/LiquidGalaxyLAB/SatNOGS-Visualization-Tool/tree/main/releases) in this repository or run the command below:
 
 ```bash
 $ flutter build apk --no-sound-null-safety
@@ -98,3 +98,7 @@ Done! Remember to do it for all slave screens so all of them will be reactive.
 ### License
 
 The SatNOGS Visualization Tool is licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+### Privacy Policy and Terms & Conditions
+
+Check out our [Privacy Policy](https://github.com/LiquidGalaxyLAB/SatNOGS-Visualization-Tool/blob/main/PRIVACY_POLICY.md) and [Terms & Conditions](https://github.com/LiquidGalaxyLAB/SatNOGS-Visualization-Tool/blob/main/TERMS_AND_CONDITIONS.md) to see more information about the application.
