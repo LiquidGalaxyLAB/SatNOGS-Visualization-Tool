@@ -221,6 +221,40 @@ class _AboutPageState extends State<AboutPage> {
                     padding: _defaultPadding(),
                     child: Column(
                       children: [
+                        _buildSectionTitle('Lleida Liquid Galaxy LAB support'),
+                        const Text(
+                          'Pau Francino',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              iconSize: 30,
+                              icon: const Icon(
+                                Icons.mail_rounded,
+                                color: Colors.white,
+                              ),
+                              splashRadius: 24,
+                              tooltip: 'paufrancino99@gmail.com',
+                              onPressed: () {
+                                _sendEmail('paufrancino99@gmail.com');
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: _defaultPadding(),
+                    child: Column(
+                      children: [
                         _buildSectionTitle('Mentors'),
                         ..._mentors
                             .map(
