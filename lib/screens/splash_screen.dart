@@ -32,6 +32,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
@@ -69,6 +70,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                               (img) => Container(
                                 alignment: Alignment.center,
                                 width: screenWidth / (images.length + 1),
+                                height: screenHeight / 5,
                                 child: Image.asset(img),
                               ),
                             )
