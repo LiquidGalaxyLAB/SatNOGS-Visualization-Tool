@@ -11,6 +11,7 @@ import 'package:satnogs_visualization_tool/services/ssh_service.dart';
 import 'package:satnogs_visualization_tool/utils/colors.dart';
 import 'package:satnogs_visualization_tool/utils/snackbar.dart';
 import 'package:satnogs_visualization_tool/widgets/button.dart';
+import 'package:satnogs_visualization_tool/widgets/confirm_dialog.dart';
 import 'package:satnogs_visualization_tool/widgets/input.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -369,75 +370,147 @@ class _SettingsPageState extends State<SettingsPage>
             _buildLGTaskButton(
               'Clear KML + logos',
               Icons.cleaning_services_rounded,
-              () async {
-                setState(() {
-                  _clearingKml = true;
-                });
-
-                try {
-                  await _lgService.clearKml(keepLogos: false);
-                } finally {
-                  setState(() {
-                    _clearingKml = false;
-                  });
+              () {
+                if (_clearingKml) {
+                  return;
                 }
+
+                showDialog(
+                  context: context,
+                  builder: (context) => ConfirmDialog(
+                    title: 'Are you sure?',
+                    message: 'All of the KML and Logos will be cleared.',
+                    onCancel: () {
+                      Navigator.of(context).pop();
+                    },
+                    onConfirm: () async {
+                      Navigator.of(context).pop();
+
+                      setState(() {
+                        _clearingKml = true;
+                      });
+
+                      try {
+                        await _lgService.clearKml(keepLogos: false);
+                      } finally {
+                        setState(() {
+                          _clearingKml = false;
+                        });
+                      }
+                    },
+                  ),
+                );
               },
               loading: _clearingKml,
             ),
             _buildLGTaskButton(
               'Relaunch',
               Icons.reset_tv_rounded,
-              () async {
-                setState(() {
-                  _relaunching = true;
-                });
-
-                try {
-                  await _lgService.relaunch();
-                } finally {
-                  setState(() {
-                    _relaunching = false;
-                  });
+              () {
+                if (_relaunching) {
+                  return;
                 }
+
+                showDialog(
+                  context: context,
+                  builder: (context) => ConfirmDialog(
+                    title: 'Are you sure?',
+                    message: 'All screens will be relaunched.',
+                    onCancel: () {
+                      Navigator.of(context).pop();
+                    },
+                    onConfirm: () async {
+                      Navigator.of(context).pop();
+
+                      setState(() {
+                        _relaunching = true;
+                      });
+
+                      try {
+                        await _lgService.relaunch();
+                      } finally {
+                        setState(() {
+                          _relaunching = false;
+                        });
+                      }
+                    },
+                  ),
+                );
               },
               loading: _relaunching,
             ),
             _buildLGTaskButton(
               'Reboot',
               Icons.restart_alt_rounded,
-              () async {
-                setState(() {
-                  _rebooting = true;
-                });
-
-                try {
-                  await _lgService.reboot();
-                } finally {
-                  setState(() {
-                    _rebooting = false;
-                  });
+              () {
+                if (_rebooting) {
+                  return;
                 }
+
+                showDialog(
+                  context: context,
+                  builder: (context) => ConfirmDialog(
+                    title: 'Are you sure?',
+                    message: 'The system will be fully rebooted.',
+                    onCancel: () {
+                      Navigator.of(context).pop();
+                    },
+                    onConfirm: () async {
+                      Navigator.of(context).pop();
+
+                      setState(() {
+                        _rebooting = true;
+                      });
+
+                      try {
+                        await _lgService.reboot();
+                      } finally {
+                        setState(() {
+                          _rebooting = false;
+                        });
+                      }
+                    },
+                  ),
+                );
               },
               loading: _rebooting,
             ),
             _buildLGTaskButton(
               'Power off',
               Icons.power_settings_new_rounded,
-              () async {
-                setState(() {
-                  _shuttingDown = true;
-                });
-
-                try {
-                  await _lgService.shutdown();
-                  setState(() {
-                    _connected = false;
-                  });
-                } finally {
-                  setState(() {
-                    _shuttingDown = false;
-                  });
+              () {
+                if (_shuttingDown) {
+                  return;
                 }
+
+                showDialog(
+                  context: context,
+                  builder: (context) => ConfirmDialog(
+                    title: 'Are you sure?',
+                    message: 'The system will shutdown.',
+                    onCancel: () {
+                      Navigator.of(context).pop();
+                    },
+                    onConfirm: () async {
+                      Navigator.of(context).pop();
+
+                      setState(() {
+                        _shuttingDown = true;
+                      });
+
+                      try {
+                        await _lgService.shutdown();
+                        setState(() {
+                          _connected = false;
+                        });
+                      } finally {
+                        setState(() {
+                          _shuttingDown = false;
+                        });
+                      }
+                    },
+                  ),
+                );
               },
               loading: _shuttingDown,
             ),
