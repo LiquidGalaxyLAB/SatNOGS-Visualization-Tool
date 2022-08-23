@@ -40,6 +40,62 @@ class LGService {
     return (screenAmount / 2).floor() + 1;
   }
 
+  /// Setups the Google Earth in slave screens to refresh every 2 seconds.
+  Future<void> setRefresh() async {
+    final pw = _sshService.client.passwordOrKey;
+
+    const search = '<href>##LG_PHPIFACE##kml\\/slave_{{slave}}.kml<\\/href>';
+    const replace =
+        '<href>##LG_PHPIFACE##kml\\/slave_{{slave}}.kml<\\/href><refreshMode>onInterval<\\/refreshMode><refreshInterval>2<\\/refreshInterval>';
+    final command =
+        'echo $pw | sudo -S sed -i "s/$search/$replace/" ~/earth/kml/slave/myplaces.kml';
+
+    final clear =
+        'echo $pw | sudo -S sed -i "s/$replace/$search/" ~/earth/kml/slave/myplaces.kml';
+
+    for (var i = 2; i <= screenAmount; i++) {
+      final clearCmd = clear.replaceAll('{{slave}}', i.toString());
+      final cmd = command.replaceAll('{{slave}}', i.toString());
+      String query = 'sshpass -p $pw ssh -t lg$i \'{{cmd}}\'';
+
+      try {
+        await _sshService.execute(query.replaceAll('{{cmd}}', clearCmd));
+        await _sshService.execute(query.replaceAll('{{cmd}}', cmd));
+      } catch (e) {
+        // ignore: avoid_print
+        print(e);
+      }
+    }
+
+    await reboot();
+  }
+
+  /// Setups the Google Earth in slave screens to stop refreshing.
+  Future<void> resetRefresh() async {
+    final pw = _sshService.client.passwordOrKey;
+
+    const search =
+        '<href>##LG_PHPIFACE##kml\\/slave_{{slave}}.kml<\\/href><refreshMode>onInterval<\\/refreshMode><refreshInterval>2<\\/refreshInterval>';
+    const replace = '<href>##LG_PHPIFACE##kml\\/slave_{{slave}}.kml<\\/href>';
+
+    final clear =
+        'echo $pw | sudo -S sed -i "s/$search/$replace/" ~/earth/kml/slave/myplaces.kml';
+
+    for (var i = 2; i <= screenAmount; i++) {
+      final cmd = clear.replaceAll('{{slave}}', i.toString());
+      String query = 'sshpass -p $pw ssh -t lg$i \'$cmd\'';
+
+      try {
+        await _sshService.execute(query);
+      } catch (e) {
+        // ignore: avoid_print
+        print(e);
+      }
+    }
+
+    await reboot();
+  }
+
   /// Reboots the Liquid Galaxy system.
   Future<void> reboot() async {
     final pw = _sshService.client.passwordOrKey;
@@ -58,6 +114,7 @@ class LGService {
   /// Relaunches the Liquid Galaxy system.
   Future<void> relaunch() async {
     final pw = _sshService.client.passwordOrKey;
+    final user = _sshService.client.username;
 
     for (var i = screenAmount; i >= 1; i--) {
       try {
@@ -70,11 +127,13 @@ else
   exit 1
 fi
 if  [[ \\\$(service \\\$SERVICE status) =~ 'stop' ]]; then
-  service \\\${SERVICE} start
+  echo $pw | sudo -S service \\\${SERVICE} start
 else
-  echo lq | sudo -S service \\\${SERVICE} restart
+  echo $pw | sudo -S service \\\${SERVICE} restart
 fi
 " && sshpass -p $pw ssh -x -t lg@lg$i "\$RELAUNCH_CMD\"""";
+        await _sshService
+            .execute('"/home/$user/bin/lg-relaunch" > /home/$user/log.txt');
         await _sshService.execute(relaunchCommand);
       } catch (e) {
         // ignore: avoid_print

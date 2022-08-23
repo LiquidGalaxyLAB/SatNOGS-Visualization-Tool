@@ -371,11 +371,6 @@ class _HomePageState extends State<HomePage> {
       if (tle == null) {
         setState(() {
           _uploading = false;
-          _satelliteBalloonVisible = true;
-          _satellitePlacemark = null;
-          _selectedSatellite = null;
-          _satelliteBalloonVisible = true;
-          _selectedStation = null;
         });
 
         return _showErrorDialog('No TLE available for this satellite!');
@@ -489,7 +484,6 @@ class _HomePageState extends State<HomePage> {
           _satelliteBalloonVisible = true;
           _selectedStation = null;
           _uploading = false;
-          _satelliteBalloonVisible = true;
         });
 
         throw Exception('connection-timed-out');

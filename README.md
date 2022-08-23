@@ -67,34 +67,13 @@ Once connected, head back to the home page and use the app as you wish. Note tha
 
 ### Setting up the rig
 
-An important step to take is configure the slave screens for refreshing when setting solo KMLs. Follow the steps below to
-active solo KML refresh for each slave screen.
+An important step to take is configure the slave screens for refreshing when setting solo KMLs.
 
-> ❗ Note that a mouse (and maybe a keyboard) will be needed to configure the Google Earth.
+To set it up, head to the settings page by hitting the cog button (⚙️) and go to the Liquid Galaxy tab.
 
-1. With Google Earth opened, press **CTRL+ALT+B** on the keyboard or click on the _**VIEW**_ tab on the tab bar and then _**Sidebar**_.
+In the button list, you shall see a button `SET SLAVES REFRESH` and `RESET SLAVES REFRESH`. The first one will setup your slave screens to refresh its solo KML every 2 seconds. The second one will make your slaves stop refreshing.
 
-<img src="./assets/docs/ge-s1.png" alt="Step 1" width="100%">
-<br><br>
-
-2. Into the Sidebar, expand the _**KML Sync**_ folder.
-
-<img src="./assets/docs/ge-s2.png" alt="Step 2" width="100%">
-<br><br>
-
-3. Right click on the _**Solo KML**_ folder and click on _**Properties**_.
-
-<img src="./assets/docs/ge-s3.png" alt="Step 3" width="100%">
-<br><br>
-
-4. Go to the _**Refresh**_ tab and change the _**Time-Based Refresh**_ to: **Periodically | 0hrs | 0mins | 1secs**
-   - The recomended _**secs**_ if from 1 to 3 seconds.
-   - Click on _**OK**_ and close the side bar by following the first step.
-
-<img src="./assets/docs/ge-s4.png" alt="Step 4" width="100%">
-<br><br>
-
-Done! Remember to do it for all slave screens so all of them will be reactive.
+> ❗ _Both actions will **reboot** your Liquid Galaxy, so the changes may be applied._
 
 ### License
 
