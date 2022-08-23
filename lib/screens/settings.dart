@@ -38,6 +38,8 @@ class _SettingsPageState extends State<SettingsPage>
   bool _loading = false;
   bool _canceled = false;
 
+  bool _settingRefresh = false;
+  bool _resetingRefresh = false;
   bool _clearingKml = false;
   bool _rebooting = false;
   bool _relaunching = false;
@@ -368,10 +370,10 @@ class _SettingsPageState extends State<SettingsPage>
               ),
             ),
             _buildLGTaskButton(
-              'Clear KML + logos',
-              Icons.cleaning_services_rounded,
-              () {
-                if (_clearingKml) {
+              'SET SLAVES REFRESH',
+              Icons.av_timer_rounded,
+              () async {
+                if (_settingRefresh) {
                   return;
                 }
 
@@ -379,7 +381,8 @@ class _SettingsPageState extends State<SettingsPage>
                   context: context,
                   builder: (context) => ConfirmDialog(
                     title: 'Are you sure?',
-                    message: 'All of the KML and Logos will be cleared.',
+                    message:
+                        'The slaves solo KMLs will start to refresh each 2 seconds and all screens will be rebooted.',
                     onCancel: () {
                       Navigator.of(context).pop();
                     },
@@ -387,19 +390,78 @@ class _SettingsPageState extends State<SettingsPage>
                       Navigator.of(context).pop();
 
                       setState(() {
-                        _clearingKml = true;
+                        _settingRefresh = true;
                       });
 
                       try {
-                        await _lgService.clearKml(keepLogos: false);
+                        await _lgService.setRefresh();
                       } finally {
                         setState(() {
-                          _clearingKml = false;
+                          _settingRefresh = false;
                         });
                       }
                     },
                   ),
                 );
+              },
+              loading: _settingRefresh,
+            ),
+            _buildLGTaskButton(
+              'RESET SLAVES REFRESH',
+              Icons.timer_off_rounded,
+              () async {
+                if (_resetingRefresh) {
+                  return;
+                }
+
+                showDialog(
+                  context: context,
+                  builder: (context) => ConfirmDialog(
+                    title: 'Are you sure?',
+                    message:
+                        'The slaves will stop refreshing and all screens will be rebooted.',
+                    onCancel: () {
+                      Navigator.of(context).pop();
+                    },
+                    onConfirm: () async {
+                      Navigator.of(context).pop();
+
+                      setState(() {
+                        _resetingRefresh = true;
+                      });
+
+                      try {
+                        await _lgService.resetRefresh();
+                      } finally {
+                        setState(() {
+                          _resetingRefresh = false;
+                        });
+                      }
+                    },
+                  ),
+                );
+              },
+              loading: _resetingRefresh,
+            ),
+            _buildLGTaskButton(
+              'Clear KML + logos',
+              Icons.cleaning_services_rounded,
+              () async {
+                if (_clearingKml) {
+                  return;
+                }
+
+                setState(() {
+                  _clearingKml = true;
+                });
+
+                try {
+                  await _lgService.clearKml(keepLogos: false);
+                } finally {
+                  setState(() {
+                    _clearingKml = false;
+                  });
+                }
               },
               loading: _clearingKml,
             ),
