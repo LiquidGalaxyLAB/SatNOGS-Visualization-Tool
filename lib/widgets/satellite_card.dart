@@ -228,7 +228,7 @@ class _SatelliteCardState extends State<SatelliteCard> {
                             _orbiting = false;
                             _simulating = false;
                             _balloonVisible = true;
-                            _orbitPeriod = 2.8;
+                            _orbitPeriod = 3;
                           });
                         },
                       )
@@ -262,6 +262,8 @@ class _SatelliteCardState extends State<SatelliteCard> {
                                   : (value) {
                                       setState(() {
                                         _balloonVisible = value;
+                                        _orbiting = false;
+                                        _simulating = false;
                                       });
 
                                       widget.onBalloonToggle(value);
@@ -313,6 +315,8 @@ class _SatelliteCardState extends State<SatelliteCard> {
                                   onChangeEnd: (value) {
                                     setState(() {
                                       _orbitPeriod = value;
+                                      _orbiting = false;
+                                      _simulating = false;
                                     });
 
                                     widget.onOrbitPeriodChange(value);
