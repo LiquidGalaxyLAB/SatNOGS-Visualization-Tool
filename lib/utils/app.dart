@@ -2,6 +2,6 @@
 class App {
   /// Property that defines the app version.
   ///
-  /// 1.0.3
-  static const version = '1.0.3';
+  /// 1.0.4
+  static const version = '1.0.4';
 }
