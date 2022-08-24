@@ -196,6 +196,7 @@ class _GroundStationCardState extends State<GroundStationCard> {
                               : (value) {
                                   setState(() {
                                     _balloonVisible = value;
+                                    _orbiting = false;
                                   });
 
                                   widget.onBalloonToggle(value);
