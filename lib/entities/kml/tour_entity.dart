@@ -49,14 +49,31 @@ class TourEntity {
     String updates = '';
 
     double heading = 0;
+    double? last;
+
+    int changedIterations = 0;
+
     for (var coord in coordinates) {
       if (heading >= 360) {
         heading -= 360;
       }
 
-      final lng = coord['lng'];
+      double? lng = coord['lng'];
       final lat = coord['lat'];
       final alt = coord['altitude'];
+
+      bool changed = false;
+
+      if (last != null && (lng! - last).abs() > 20 && changedIterations == 0) {
+        changed = true;
+      }
+
+      if (last != null &&
+          ((lng! < 0 && last > 0) || (lng > 0 && last < 0)) &&
+          lat!.abs() > 70) {
+        changedIterations++;
+        heading += (heading >= 180 ? -180 : 180);
+      }
 
       heading += 1;
       updates += '''
@@ -70,12 +87,12 @@ class TourEntity {
             <heading>$heading</heading>
             <tilt>30</tilt>
             <range>10000000</range>
-            <gx:altitudeMode>relativeToGround</gx:altitudeMode>
+            <gx:altitudeMode>absolute</gx:altitudeMode>
           </LookAt>
         </gx:FlyTo>
 
         <gx:AnimatedUpdate>
-          <gx:duration>0.7</gx:duration>
+          <gx:duration>${changed ? 0 : 0.7}</gx:duration>
           <Update>
             <targetHref/>
             <Change>
@@ -88,6 +105,14 @@ class TourEntity {
           </Update>
         </gx:AnimatedUpdate>
       ''';
+
+      if (changedIterations > 0 && changedIterations < 11) {
+        changedIterations++;
+      } else {
+        changedIterations = 0;
+      }
+
+      last = lng;
     }
 
     updates += '''
