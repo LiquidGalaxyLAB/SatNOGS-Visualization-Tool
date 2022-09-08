@@ -26,6 +26,8 @@ The project aims to collect and show data from satellites and ground stations us
 
 With the data available into the app, is possible to send it to the Liquid Galaxy system to be shown into Google Earth.
 
+Have a look at the application into [Google PlayStore](https://play.google.com/store/apps/details?id=com.satnogs_visualization_tool.android).
+
 ### Getting started
 
 Before continuing, make sure to have installed in your machine [Git](https://git-scm.com/) and [Flutter](https://flutter.dev). Read [Flutter documentation](https://docs.flutter.dev) for further information.
