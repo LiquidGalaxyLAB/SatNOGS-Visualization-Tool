@@ -44,7 +44,7 @@ dependencies:
   sgp4_sdp4: ^0.1.0
   path_provider: ^2.0.11
   url_launcher: ^6.1.5
-  ssh: ^0.0.7
+  ssh2: ^2.2.3
 
 dev_dependencies:
   flutter_test:
