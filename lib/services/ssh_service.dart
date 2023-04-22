@@ -3,7 +3,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:satnogs_visualization_tool/entities/ssh_entity.dart';
 import 'package:satnogs_visualization_tool/services/settings_service.dart';
-import 'package:ssh/ssh.dart';
+import 'package:ssh2/ssh2.dart';
 
 /// Service that deals with the SSH management.
 class SSHService {
@@ -38,7 +38,7 @@ class SSHService {
   /// Connects to the current client, executes a command into it and then
   /// disconnects.
   Future<String?> execute(String command) async {
-    String result = await connect();
+    String? result = await connect();
 
     String? execResult;
 
@@ -51,7 +51,7 @@ class SSHService {
   }
 
   /// Connects to a machine using the current client.
-  Future<String> connect() async {
+  Future<String?> connect() async {
     return _client.connect();
   }
 
@@ -65,7 +65,7 @@ class SSHService {
   /// then disconnects.
   Future<void> upload(String filePath) async {
     await connect();
-    String result = await _client.connectSFTP();
+    String? result = await _client.connectSFTP();
 
     if (result == 'sftp_connected') {
       await _client.sftpUpload(
